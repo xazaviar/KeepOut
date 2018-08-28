@@ -1,0 +1,17 @@
+{
+  "name": "KeepOut",
+  "version": "1.0.0",
+  "description": "",
+  "main": "main.js",
+  "scripts": {},
+  "repository": {},
+  "author": {
+    "name": "Joseph Ryan"
+  },
+  "license": "",
+  "bugs": {},
+  "dependencies": {
+    "express": "^4.16.3",
+    "socket.io": "^1.7.2"
+  }
+}
