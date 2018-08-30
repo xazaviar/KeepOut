@@ -1,13 +1,13 @@
 $(document).ready(function() {
     //Check for previous sign in
     var auth = getCookie("auth");
-    var name = "ANONYMOUS";
+    var name = "???";
 
     if(auth == ""){
         //New sign in
-        // name = prompt("Please enter your name:");
+        name = prompt("Please enter your name:");
         if (name == null || name == "") {
-            name = "ANONYMOUS";
+            name = "???";
         }
     }
 

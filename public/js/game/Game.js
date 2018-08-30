@@ -9,6 +9,8 @@ function Game(socket, drawing){
 
     this.clickedBall		= false;
     this.firstData 			= true;
+
+    this.recentClick        = false;
 }
 
 Game.create = function(socket, canvasElement) {
@@ -43,41 +45,46 @@ Game.prototype.receiveGameState = function(state) {
     this.self  = state['self'];
     this.otherPlayers = state['players'];
 
-    //Correct balls
-    for(var o in this.drawing.ballList)
-        this.drawing.ballList[o].keep = false;
-    for(var b in this.self.balls){
-        var ball = this.self.balls[b];
+    if(!this.recentClick){
+        //Correct balls
+        for(var o =0; o < this.drawing.ballList.length; o++)
+            this.drawing.ballList[o].keep = false;
 
-        var newBall = true;
-        for(var o in this.drawing.ballList){
-            if(this.drawing.ballList[o].auth == ball.auth){
-                this.drawing.ballList[o].keep = true;
-                newBall = false;
-                break;
+        for(var b in this.self.balls){
+            var ball = this.self.balls[b];
+
+            var newBall = true;
+            for(var o =0; o < this.drawing.ballList.length; o++){
+                if(this.drawing.ballList[o].auth == ball.auth){
+                    this.drawing.ballList[o].keep = true;
+                    newBall = false;
+                    break;
+                }
             }
+
+            if(newBall) this.drawing.newBall(ball.auth);
         }
 
-        if(newBall) this.drawing.newBall(ball.auth);
+        //Remove bad balls
+        for(var o =0; o < this.drawing.ballList.length; o++){
+            if(!this.drawing.ballList[o].keep) 
+                this.drawing.removeBall(this.drawing.ballList[o].auth);
+        }
     }
-
-    //Remove bad balls
-    for(var o in this.drawing.ballList){
-        if(!this.drawing.ballList[o].keep) 
-            this.drawing.ballList[o].splice(o,1);
-    }
+    else this.recentClick = false;
+    
 
     //Create cookie
 	if(this.firstData){
 		var now = new Date();
 		now.setMonth(now.getMonth() + 1);
-		// document.cookie = "auth="+this.self.authToken+"; expires="+now;
+		document.cookie = "auth="+this.self.authToken+"; expires="+now;
 		this.firstData = false;
 	}
 }
 
 Game.prototype.update = function() {
-    console.log(this.self);
+    // console.log(this.self);
 
 	this.socket.emit('player-action', {
         keyboardState: {
@@ -129,6 +136,7 @@ Game.prototype.checkInput = function(){
             if(this.drawing.ballList[b].clicked(mAdj)){
                 this.clickedBall = this.drawing.ballList[b].auth;
                 this.drawing.ballList.splice(b,1); //Immediate remove
+                this.recentClick = true;
                 break;
             }
         }
