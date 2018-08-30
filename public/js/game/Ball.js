@@ -1,11 +1,12 @@
-function Ball(id, wid, hei){
+function Ball(auth, wid, hei){
 	const speed = Math.random()*3+2;
 
-	this.id			= id;
+	this.auth		= auth;
 	this.x 			= parseInt(Math.random()*wid);
 	this.y 			= parseInt(Math.random()*hei);
 	this.direction 	= [(Math.random()*2-1)*speed,(Math.random()*2-1)*speed];
 	this.size 		= 15;//Radius
+	this.keep		= true;
 }
 
 Ball.prototype.move = function(){

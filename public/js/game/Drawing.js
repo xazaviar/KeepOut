@@ -8,23 +8,23 @@ function Drawing(context) {
     this.backColor = {r:parseInt(Math.random()*255),g:parseInt(Math.random()*255),b:parseInt(Math.random()*255)};
     this.colorGoal = {r:parseInt(Math.random()*255),g:parseInt(Math.random()*255),b:parseInt(Math.random()*255)};
 
-    this.ballID   = 0;
     this.ballList = [];
+    this.ballsClicked = 0;
 }
 
 Drawing.create = function(context) {
     return new Drawing(context);
 }
 
-Drawing.prototype.newBall = function(){
-    this.ballList.push(new Ball(this.ballID++,this.BOX_SIZE,this.BOX_SIZE));
-    this.ballID++;
+Drawing.prototype.newBall = function(auth){
+    this.ballList.push(new Ball(auth,this.BOX_SIZE,this.BOX_SIZE));
 }
 
-Drawing.prototype.removeBall = function(id){
+Drawing.prototype.removeBall = function(auth){
     for(var b in this.ballList){
-        if(this.ballList[b].id == id){
+        if(this.ballList[b].auth == auth){
             this.ballList.splice(b,1);
+            this.ballsClicked++;
             break;
         }
     }
@@ -50,26 +50,26 @@ Drawing.prototype.drawBackground = function(){
     this.context.fill();
 
     //Instructions
-    this.context.beginPath();
-    this.context.fillStyle = "#FFF";
-    this.context.font = ""+20*this.scale+"px Arial";
-    this.context.fillText("Click the ball to keep it out of your box.",70*this.scale,285*this.scale);
-    // this.context.fillText("Points are bad, so avoid the ball at all cost.",60*this.scale,300*this.scale);
-    this.context.fill();
+    if(this.ballsClicked < 2){
+        this.context.beginPath();
+        this.context.fillStyle = "#FFF";
+        this.context.font = ""+20*this.scale+"px Arial";
+        this.context.fillText("Click the ball to keep it out of your box.",70*this.scale,285*this.scale);
+        this.context.fill();
+    }
 }
 
-Drawing.prototype.drawPlayerList = function(self,list){
+Drawing.prototype.drawPlayerList = function(self, list){
     this.context.beginPath();
     this.context.fillStyle = "#FFF";
 
     var fontSize = 10;
     this.context.font = "Bold "+(fontSize+3)*this.scale+"px Arial";
-    if(self!=null)
-        this.context.fillText("["+self.name+"] time: "+self.lifetime+" | ball time: "+self.score,10*this.scale,fontSize*this.scale+5*this.scale);
+    this.context.fillText("["+self.name+"] score: "+self.score+" | "+(self.balltime/Math.max(self.lifetime,1)*100).toFixed(2)+"%",10*this.scale,fontSize*this.scale+5*this.scale);
 
     this.context.font = ""+fontSize*this.scale+"px Arial";
     for(var l = 0; l < list.length; l++)
-        this.context.fillText("["+list[l].name+"] "+list[l].lifetime+" | "+list[l].score+" ("+list[l].balls+")",10*this.scale,(l+2)*fontSize*this.scale+5*this.scale);
+        this.context.fillText("["+list[l].name+"] "+list[l].score+" | "+(list[l].balltime/Math.max(list[l].lifetime,1)*100).toFixed(0)+"% ("+list[l].balls.length+")",10*this.scale,(l+2)*fontSize*this.scale+5*this.scale);
     
     this.context.fill();
 }

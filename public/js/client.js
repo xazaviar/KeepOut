@@ -1,7 +1,14 @@
 $(document).ready(function() {
-    var name = prompt("Please enter your name:");
-    if (name == null || name == "") {
-        name = "ANONYMOUS";
+    //Check for previous sign in
+    var auth = getCookie("auth");
+    var name = "ANONYMOUS";
+
+    if(auth == ""){
+        //New sign in
+        // name = prompt("Please enter your name:");
+        if (name == null || name == "") {
+            name = "ANONYMOUS";
+        }
     }
 
     var socket = io();
@@ -11,10 +18,26 @@ $(document).ready(function() {
 
   	var game = Game.create(socket, canvas);
 
-  	game.init(name);
+  	game.init(name, auth);
     game.animate();
 
   	$('#canvas').bind('contextmenu', function(e){
         return false;
 	}); 
 });
+
+function getCookie(cname) {
+    var name = cname + "=";
+    var decodedCookie = decodeURIComponent(document.cookie);
+    var ca = decodedCookie.split(';');
+    for(var i = 0; i < ca.length; i++) {
+        var c = ca[i];
+        while (c.charAt(0) == ' ') {
+            c = c.substring(1);
+        }
+        if (c.indexOf(name) == 0) {
+            return c.substring(name.length, c.length);
+        }
+    }
+    return "";
+}

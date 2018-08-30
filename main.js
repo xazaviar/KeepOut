@@ -38,8 +38,11 @@ io.on('connection', (socket) => {
 		//Correct name length
 		if(data.name.length > 10) data.name = data.name.substring(0,10);
 
-		console.log("["+socket.id+"] "+data.name+" has connected.");
-    	game.addNewPlayer(socket, data.name);
+		
+		if(data.auth != "")
+    		game.reconnectPlayer(socket, data.name, data.auth);
+		else
+    		game.addNewPlayer(socket, data.name);
   	});
 
   	socket.on('player-action', (data) => {
@@ -47,8 +50,7 @@ io.on('connection', (socket) => {
   	});
 
   	socket.on('disconnect', () => {
-		console.log("["+socket.id+"] has disconnected.");
-    	game.removePlayer(socket.id);
+    	game.disconnectPlayer(socket.id);
   	});
 });
 
