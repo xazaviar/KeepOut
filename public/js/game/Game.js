@@ -84,7 +84,7 @@ Game.prototype.receiveGameState = function(state) {
 }
 
 Game.prototype.update = function() {
-    // console.log(this.self);
+    // console.log(this.otherPlayers);
 
 	this.socket.emit('player-action', {
         keyboardState: {

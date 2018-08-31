@@ -65,11 +65,13 @@ Drawing.prototype.drawPlayerList = function(self, list){
 
     var fontSize = 10;
     this.context.font = "Bold "+(fontSize+3)*this.scale+"px Arial";
-    this.context.fillText("["+self.name+"] score: "+self.score+" | "+(self.balltime/Math.max(self.lifetime,1)*100).toFixed(2)+"%",10*this.scale,fontSize*this.scale+5*this.scale);
+    // this.context.fillText("["+self.name+"] score: "+self.score+" | "+(self.balltime/Math.max(self.lifetime,1)*100).toFixed(2)+"%",10*this.scale,fontSize*this.scale+5*this.scale);
+    this.context.fillText("["+self.name+"] score: "+(self.lifetime-self.balltime),10*this.scale,fontSize*this.scale+5*this.scale);
 
     this.context.font = ""+fontSize*this.scale+"px Arial";
     for(var l = 0; l < list.length; l++)
-        this.context.fillText("["+list[l].name+"] "+list[l].score+" | "+(list[l].balltime/Math.max(list[l].lifetime,1)*100).toFixed(0)+"% ("+list[l].balls.length+")",10*this.scale,(l+2)*fontSize*this.scale+5*this.scale);
+        // this.context.fillText("["+list[l].name+"] "+list[l].score+" | "+(list[l].balltime/Math.max(list[l].lifetime,1)*100).toFixed(0)+"% ("+list[l].balls.length+")",10*this.scale,(l+2)*fontSize*this.scale+5*this.scale);
+        this.context.fillText("["+list[l].name+"] "+(list[l].lifetime-list[l].balltime)+" ("+list[l].balls.length+")",10*this.scale,(l+2)*fontSize*this.scale+5*this.scale);
     
     this.context.fill();
 }
