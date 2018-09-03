@@ -2,7 +2,7 @@ function Game(socket, drawing){
     this.socket = socket;
     this.drawing = drawing;
 
-    this.self 				= null;
+    this.user 				= null;
     this.playerList 		= [];
     this.animationFrameId 	= 0;
     this.prevLeft			= false;
@@ -11,6 +11,8 @@ function Game(socket, drawing){
     this.firstData 			= true;
 
     this.recentClick        = false;
+
+    this.saveAuth           = true;
 }
 
 Game.create = function(socket, canvasElement) {
@@ -30,6 +32,16 @@ Game.prototype.init = function(name, auth) {
     	name: name,
     	auth: auth
     });
+    this.socket.on('failed-connect', function(data) {
+        name = prompt("Could not find token on server. Please enter your name:");
+        if (name == null || name == "") {
+            name = "???";
+        }
+        context.socket.emit('player-connect', {
+            name: name,
+            auth: ""
+        });
+    });
 }
 
 Game.prototype.animate = function() {
@@ -42,19 +54,21 @@ Game.prototype.stopAnimation = function() {
 }
 
 Game.prototype.receiveGameState = function(state) {
-    this.self  = state['self'];
+    this.user  = state['self'];
     this.otherPlayers = state['players'];
+
+    // console.log(this.user);
 
     if(!this.recentClick){
         //Correct balls
-        for(var o =0; o < this.drawing.ballList.length; o++)
+        for(var o = 0; o < this.drawing.ballList.length; o++)
             this.drawing.ballList[o].keep = false;
 
-        for(var b in this.self.balls){
-            var ball = this.self.balls[b];
+        for(var b in this.user.balls){
+            var ball = this.user.balls[b];
 
             var newBall = true;
-            for(var o =0; o < this.drawing.ballList.length; o++){
+            for(var o = 0; o < this.drawing.ballList.length; o++){
                 if(this.drawing.ballList[o].auth == ball.auth){
                     this.drawing.ballList[o].keep = true;
                     newBall = false;
@@ -66,7 +80,7 @@ Game.prototype.receiveGameState = function(state) {
         }
 
         //Remove bad balls
-        for(var o =0; o < this.drawing.ballList.length; o++){
+        for(var o = 0; o < this.drawing.ballList.length; o++){
             if(!this.drawing.ballList[o].keep) 
                 this.drawing.removeBall(this.drawing.ballList[o].auth);
         }
@@ -75,17 +89,15 @@ Game.prototype.receiveGameState = function(state) {
     
 
     //Create cookie
-	if(this.firstData){
+	if(this.firstData && this.saveAuth){
 		var now = new Date();
 		now.setMonth(now.getMonth() + 1);
-		document.cookie = "auth="+this.self.authToken+"; expires="+now;
+		document.cookie = "auth="+this.user.authToken+"; expires="+now;
 		this.firstData = false;
 	}
 }
 
 Game.prototype.update = function() {
-    // console.log(this.otherPlayers);
-
 	this.socket.emit('player-action', {
         keyboardState: {
             misc:       Input.MISC_KEYS
@@ -102,9 +114,9 @@ Game.prototype.update = function() {
     });
     //Reset variables
     this.clickedBall = null;
-    this.checkInput();
 
     this.draw();
+    this.checkInput();
     this.animate();
 }
 
@@ -121,11 +133,17 @@ Game.prototype.draw = function() {
     //Draw background
     this.drawing.drawBackground();
 
-    //Draw players
-    if(this.self) this.drawing.drawPlayerList(this.self, this.otherPlayers);
-
     //Draw balls
     this.drawing.drawBalls();
+
+    //Draw Alternate Screens
+    if(this.user) {
+        this.drawing.drawAlternateView(this.user, this.otherPlayers);
+
+        //Draw Menu Items
+        var mAdj = this.calculateMouseCoords(Input.MOUSE[0],Input.MOUSE[1],this.drawing.scale);
+        if(mAdj.y < 40) this.drawing.drawMenuItems(this.user.menu, mAdj, Input.LEFT_CLICK && !this.prevLeft);
+    }
 }
 
 Game.prototype.checkInput = function(){
@@ -135,7 +153,7 @@ Game.prototype.checkInput = function(){
         for(var b in this.drawing.ballList){
             if(this.drawing.ballList[b].clicked(mAdj)){
                 this.clickedBall = this.drawing.ballList[b].auth;
-                this.drawing.ballList.splice(b,1); //Immediate remove
+                this.drawing.removeBall(this.clickedBall); //Immediate remove
                 this.recentClick = true;
                 break;
             }

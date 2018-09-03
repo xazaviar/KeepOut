@@ -1,5 +1,5 @@
 const PORT = process.env.PORT || 8080;
-const FPS = 60;
+const FPS = 20; // was 60, using reduced to increase performance
 
 //Dependencies
 const express = require('express');
@@ -24,10 +24,10 @@ app.get('/', function(req, res){
 //**************************************************************************
 //Files
 //**************************************************************************
-// app.get('/*', function (req, res, next) {
-// 	var file = req.params[0];
-//   	res.sendFile( __dirname + '/public/' + file);
-// });
+app.get('/*', function (req, res, next) {
+	var file = req.params[0];
+  	res.sendFile( __dirname + '/public/' + file);
+});
 
 /**
  * Server side input handler, modifies the state of the players and the
@@ -36,8 +36,9 @@ app.get('/', function(req, res){
 io.on('connection', (socket) => {
 	socket.on('player-connect', (data) => {
 		//Correct name length
+    data.name = data.name.split(" ").join("_");
 		if(data.name.length > 10) data.name = data.name.substring(0,10);
-
+    if(data.name.length < 3) data.name = "???";
 		
 		if(data.auth != "")
     		game.reconnectPlayer(socket, data.name, data.auth);
