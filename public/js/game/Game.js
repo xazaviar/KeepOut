@@ -94,6 +94,7 @@ Game.prototype.receiveGameState = function(state) {
 		now.setMonth(now.getMonth() + 1);
 		document.cookie = "auth="+this.user.authToken+"; expires="+now;
 		this.firstData = false;
+        console.log("first");
 	}
 }
 
@@ -108,8 +109,9 @@ Game.prototype.update = function() {
             right:      Input.RIGHT_CLICK
         },
         gameState: {
-            auth:        this.clickedBall,
-        	returnType:  "random"
+            auth:       this.clickedBall,
+            backColor:  this.drawing.backColor,  
+        	returnType: "random"
         }
     });
     //Reset variables

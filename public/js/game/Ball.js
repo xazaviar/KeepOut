@@ -33,5 +33,6 @@ Ball.prototype.bounce = function(wid, hei){
 }
 
 Ball.prototype.clicked = function(m){
-	return Math.pow(this.x-m.x,2) + Math.pow(this.y-m.y,2) <= this.size*this.size;
+	const extra = 5;
+	return Math.pow(this.x-m.x,2) + Math.pow(this.y-m.y,2) <= Math.pow(this.size+extra,2);
 }

@@ -6,6 +6,7 @@ Input.LAST_INPUT_RECEIVED = new Date();
 Input.LEFT_CLICK  	= false;
 Input.RIGHT_CLICK 	= false;
 Input.MIDDLE_CLICK	= false;
+
 Input.MOUSE       = [0, 0];
 
 Input.MISC_KEYS   = {};
@@ -96,3 +97,18 @@ Input.addMouseTracker = function(element) {
     	Input.LAST_INPUT_RECEIVED = new Date();
   	});
 };
+
+Input.addTouchTracker = function(element) {
+    document.addEventListener('touchstart', (event) => {
+        Input.MOUSE = [event.touches[0].clientX - element.offsetLeft,
+                       event.touches[0].clientY - element.offsetTop];
+        Input.LEFT_CLICK = true;
+        Input.LAST_INPUT_RECEIVED = new Date();
+    });
+
+    document.addEventListener('touchend', (event) => {
+        Input.MOUSE = [-1,-1];
+        Input.LEFT_CLICK = false;
+        Input.LAST_INPUT_RECEIVED = new Date();
+    });
+}

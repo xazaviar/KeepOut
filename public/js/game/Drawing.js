@@ -50,19 +50,21 @@ Drawing.prototype.drawBackground = function(){
     this.context.fill();
 
     //Website Title
-    this.context.beginPath();
-    this.context.fillStyle = "#FFF";
-    this.context.font = "Bold "+80*this.scale+"px Arial";
-    this.context.fillText("KEEP OUT",40*this.scale,270*this.scale);
-    this.context.fill();
-
-    //Instructions
-    if(this.ballsClicked < 2){
+    if(this.curView==null){
         this.context.beginPath();
         this.context.fillStyle = "#FFF";
-        this.context.font = ""+20*this.scale+"px Arial";
-        this.context.fillText("Click the ball to keep it out of your box.",70*this.scale,295*this.scale);
+        this.context.font = "Bold "+80*this.scale+"px Arial";
+        this.context.fillText("KEEP OUT",40*this.scale,270*this.scale);
         this.context.fill();
+
+        //Instructions
+        if(this.ballsClicked < 2){
+            this.context.beginPath();
+            this.context.fillStyle = "#FFF";
+            this.context.font = ""+20*this.scale+"px Arial";
+            this.context.fillText("Click the ball to keep it out of your box.",70*this.scale,295*this.scale);
+            this.context.fill();
+        }
     }
 }
 
@@ -120,8 +122,10 @@ Drawing.prototype.drawBalls = function(){
 Drawing.prototype.drawAlternateView = function(user,list){
     //Chnage the view
     if(this.changeView == "ball"){
-        this.ballVision = !this.ballVision;
+        if(this.curView != null) this.ballVision = true;
+        else this.ballVision = !this.ballVision;
         this.changeView = null;
+        this.curView = null;
     }
     else if(this.changeView != null){
         this.curView = this.changeView==this.curView?null:this.changeView;
@@ -131,7 +135,7 @@ Drawing.prototype.drawAlternateView = function(user,list){
     //draw the current view
     if(this.curView == "leaderboard") this.drawLeaderboard(user, list);
     else if(this.curView == "stats") this.drawStats(user, list);
-    else if(this.curView == "settings") this.drawSettings(user);
+    else if(this.curView == "settings") this.drawSettings(user, list);
     else if(this.ballVision) this.drawBallHolders(list);
 }
 
@@ -146,16 +150,9 @@ Drawing.prototype.drawLeaderboard = function(user, list){
     this.context.fillStyle = "#FFF";
 
     //Sort list
-    list.sort(function(a,b){
-        if(a.score < b.score) return 1;
-        else if(a.score > b.score) return -1;
-        else{
-            //same score
-            if(a.name < b.name) return 1;
-            if(a.name > b.name) return -1;
-            return 0;
-        } 
-    });
+    var temp = rankPlayers(user, list);
+    var rankings = temp[0];
+    var userRank = temp[1];
 
     //Display top 10
     var startX = 20, startY = 60;
@@ -165,40 +162,23 @@ Drawing.prototype.drawLeaderboard = function(user, list){
     this.context.fillText("SCORE",(startX+360)*this.scale,startY*this.scale);
 
     startY = 60;
-    var rank = 1, inserted = false;
-    for(var r = 0; r < Math.min(10,list.length+inserted); r++){
+    var inserted = false;
+    for(var r = 0; r < Math.min(10,rankings.length); r++){
         this.context.font = ""+fontSize*this.scale+"px Arial";
-
-        var current = list[r-inserted];
-
-        //Set Rank
-        if((r-inserted > 0 && current.score != list[r-inserted-1].score) || (inserted && current.score != user.score)) rank = r+1;
-
-        //Check to see if user is in the top 10
-        if(!inserted && current.score <= user.score){
+        if(rankings[r].name == user.name && rankings[r].score == user.score){
             inserted = true;
             this.context.font = "Bold "+(fontSize)*this.scale+"px Arial";
-            this.context.fillText(rank, startX*this.scale,((r+1)*fontSize+5+startY)*this.scale);
-            this.context.fillText("["+user.level+"] "+user.name,(startX+70)*this.scale,((r+1)*fontSize+5+startY)*this.scale);
-            this.context.fillText(user.score,(startX+360)*this.scale,((r+1)*fontSize+5+startY)*this.scale);
         }
-        else{
-            this.context.fillText(rank,startX*this.scale,((r+1)*fontSize+5+startY)*this.scale);
-            this.context.fillText("["+current.level+"] "+current.name,(startX+70)*this.scale,((r+1)*fontSize+5+startY)*this.scale);
-            this.context.fillText(current.score,(startX+360)*this.scale,((r+1)*fontSize+5+startY)*this.scale);
-        }
+        this.context.fillText(rankings[r].rank, startX*this.scale,((r+1)*fontSize+5+startY)*this.scale);
+        this.context.fillText("["+rankings[r].level+"] "+rankings[r].name,(startX+70)*this.scale,((r+1)*fontSize+5+startY)*this.scale);
+        this.context.fillText(rankings[r].score,(startX+360)*this.scale,((r+1)*fontSize+5+startY)*this.scale);
+        
     }
 
     //User is either bottom of list or not top ten
     if(!inserted){
-        rank = Math.min(10,list.length)+1;
-        var bRank = rank;
+        var bRank = Math.min(10,list.length)+1;
         var extra = bRank>10?40:0;
-
-        for(var r = rank-1; r < list.length; r++){
-            if(list[r].score <= user.score) break;
-            rank++;
-        }
 
         //dots
         if(extra){
@@ -210,21 +190,59 @@ Drawing.prototype.drawLeaderboard = function(user, list){
         }
 
         this.context.font = "Bold "+(fontSize)*this.scale+"px Arial";
-        this.context.fillText(rank, startX*this.scale,(bRank*fontSize+5+60+extra)*this.scale);
+        this.context.fillText(userRank, startX*this.scale,(bRank*fontSize+5+60+extra)*this.scale);
         this.context.fillText("["+user.level+"] "+user.name,(startX+70)*this.scale,(bRank*fontSize+5+60+extra)*this.scale);
         this.context.fillText(user.score,(startX+360)*this.scale,(bRank*fontSize+5+60+extra)*this.scale);
     }    
     this.context.fill();
 }
 
-Drawing.prototype.drawStats = function(user){
+Drawing.prototype.drawStats = function(user, list){
     this.context.beginPath();
-    this.context.fillStyle = "rgba(0,0,0,.6)";
+    this.context.fillStyle = "rgba(0,0,0,.7)";
     this.context.fillRect(0,0,this.BOX_SIZE*this.scale,this.BOX_SIZE*this.scale);
+
+    var userRank = rankPlayers(user,list)[1];
+
+    var startX = 10, startY = 70;
+
+    //Base Info
+    var fontSize = 30;
+    this.context.font = "Bold "+(fontSize)*this.scale+"px Arial";
+    this.context.fillStyle = "#FFF";
+    this.context.fillText("NAME: "+user.name,startX*this.scale,startY*this.scale);
+    fontSize = 20;
+    this.context.font = "Bold "+(fontSize)*this.scale+"px Arial";
+    this.context.fillText("RANK: "+userRank+"/"+(list.length+1),(startX)*this.scale,(startY+24)*this.scale);
+    this.context.fillText("SCORE: "+user.score,(startX+160)*this.scale,(startY+24)*this.scale);
+
+    //Leveling
+    startY = 125;
+    this.context.fillText(user.level,(startX)*this.scale,startY*this.scale);
+    this.context.fillText((user.level+1),(480)*this.scale,startY*this.scale);
+    this.context.fillText("Exp: "+user.experience,(startX)*this.scale,(startY+30)*this.scale);
+    this.context.fillText("Next Level: "+user.nextLevel,(startX)*this.scale,(startY+50)*this.scale);
+
+    //EXP bar
+    this.context.fillRect((startX+15)*this.scale,(startY-15)*this.scale,3*this.scale,16*this.scale);
+    this.context.fillRect((475)*this.scale,(startY-15)*this.scale,3*this.scale,16*this.scale);
+    this.context.fillRect((startX+15)*this.scale,(startY-8.5)*this.scale,452*this.scale,3*this.scale);
+    var exp = Math.min(450*(user.experience-user.expPrev)/(user.nextLevel-user.expPrev),450);
+    this.context.fillRect((startX+15)*this.scale,(startY-12)*this.scale,exp*this.scale,9*this.scale);
+
+    //Additional Stats
+    startY = 200;
+    this.context.fillText("Life time: "+convertSeconds(user.lifetime),(startX)*this.scale,(startY+=fontSize+2)*this.scale);
+    this.context.fillText("Active time: "+convertSeconds(user.activetime),(startX)*this.scale,(startY+=fontSize+2)*this.scale);
+    this.context.fillText("Ball time: "+convertSeconds(user.balltime),(startX)*this.scale,(startY+=fontSize+2)*this.scale);
+    this.context.fillText("Ball time (stacked): "+convertSeconds(user.balltimeS),(startX)*this.scale,(startY+=fontSize+2)*this.scale);
+    this.context.fillText("Time with balls: "+(user.balltime/Math.max(user.lifetime,1)*100).toFixed(2)+"%",(startX)*this.scale,(startY+=fontSize+2)*this.scale);
+    this.context.fillText("Total Balls: "+(user.ballCount),(startX)*this.scale,(startY+=fontSize+2)*this.scale);
+    this.context.fillText("Total Swats: "+(user.swatCount),(startX)*this.scale,(startY+=fontSize+2)*this.scale);
 }
 
 Drawing.prototype.drawBallHolders = function(list){
-    var fontSize = 10;
+    var fontSize = 20;
 
     this.context.beginPath();
     this.context.fillStyle = "#FFF";
@@ -318,4 +336,74 @@ Drawing.prototype.loadImages = function(){
     this.vision_onImg.src   = "/images/vision_on.png";
     this.vision_offImg      = new Image;
     this.vision_offImg.src  = "/images/vision_off_v2.png";
+}
+
+function convertSeconds(sec){
+    if(sec < 60) //One minute
+        return ""+sec+"s";
+    else if(sec < 60*60) //one hour
+        return ""+(sec/60).toFixed(0)+" mins";
+    else if(sec < 60*60*24) //one day
+        return ""+(sec/(60*60)).toFixed(1)+" hours";
+    else //More than 1 day
+        return ""+(sec/(60*60*24)).toFixed(2)+" days";
+}
+
+function rankPlayers(user,list){
+    var ranking = [];
+
+    //Sort list
+    list.sort(function(a,b){
+        if(a.score < b.score) return 1;
+        else if(a.score > b.score) return -1;
+        else{
+            //same score
+            if(a.name < b.name) return 1;
+            if(a.name > b.name) return -1;
+            return 0;
+        } 
+    });
+
+    var rank = 1, inserted = false, userRank = 0;
+    for(var r = 0; r < list.length+inserted; r++){
+        var current = list[r-inserted];
+
+        //Set Rank
+        if(r > 0 && current.score != ranking[ranking.length-1].score) 
+            rank = r+1;
+
+        //Check to see if inserting user
+        if(!inserted && current.score <= user.score){
+            inserted = true;
+            userRank = rank;
+            ranking.push({
+                rank: rank,
+                name: user.name,
+                score: user.score,
+                level: user.level
+            });
+        }
+        else{
+            ranking.push({
+                rank: rank,
+                name: current.name,
+                score: current.score,
+                level: current.level
+            });
+        }
+
+    }
+
+    if(!inserted){
+        if(ranking.length > 0 && user.score != ranking[ranking.length-1].score) rank++;
+        userRank = rank;
+        ranking.push({
+            rank: rank,
+            name: user.name,
+            score: user.score,
+            level: user.level
+        });
+    }
+
+    return [ranking,userRank];
 }

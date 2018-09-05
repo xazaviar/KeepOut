@@ -15,6 +15,7 @@ $(document).ready(function() {
   	var canvas = document.getElementById('canvas');
   	Input.applyEventHandlers();
   	Input.addMouseTracker(canvas);
+    Input.addTouchTracker(canvas);
 
   	var game = Game.create(socket, canvas);
 
