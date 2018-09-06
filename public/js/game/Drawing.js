@@ -16,15 +16,27 @@ function Drawing(context) {
     this.curView = null;
     this.changeView = null;
 
+    //Ball Target
+    this.ballTarget = null;
+
     this.loadImages();
+
+    //Ball Colors
+    this.stdBallColor = "#000";
+    this.targetBallColor = "#F00";
+    this.moneyBallColor = "#FFD700";
+
+    //Targeting drawing scroll bar
+    this.maxTargetDisplay = 11;
+    this.targetIndex = 0;
 }
 
 Drawing.create = function(context) {
     return new Drawing(context);
 }
 
-Drawing.prototype.newBall = function(auth){
-    this.ballList.push(new Ball(auth,this.BOX_SIZE,this.BOX_SIZE));
+Drawing.prototype.newBall = function(sender, auth,  type){
+    this.ballList.push(new Ball(sender,auth, type, this.BOX_SIZE,this.BOX_SIZE));
 }
 
 Drawing.prototype.removeBall = function(auth){
@@ -84,6 +96,7 @@ Drawing.prototype.drawMenuItems = function(menuItems, mouse, click){
     const imgs = [{img:this.leaderboardImg, view:"leaderboard"},
                   {img:this.statsImg, view:"stats"},
                   {img:this.ballVision?this.vision_onImg:this.vision_offImg, view:"ball"},
+                  {img:this.targetImg, view:"target"},
                   {img:this.settingsImg, view:"settings"}];
     var index = 0;
     for(var m in menuItems){
@@ -105,11 +118,17 @@ Drawing.prototype.drawMenuItems = function(menuItems, mouse, click){
 
 Drawing.prototype.drawBalls = function(){
     for(var b in this.ballList){
+        //Move balls
         this.ballList[b].move(this.scale);
         this.ballList[b].bounce(this.BOX_SIZE, this.BOX_SIZE);
 
+        //Color ball
+        if(this.ballList[b].type == "TARGET") this.context.fillStyle = this.targetBallColor;
+        else if(this.ballList[b].type == "MONEY") this.context.fillStyle = this.moneyBallColor;
+        else this.context.fillStyle = this.stdBallColor;
+
+        //Draw ball
         this.context.beginPath();
-        this.context.fillStyle = "#000";
         this.context.arc(this.ballList[b].x*this.scale,this.ballList[b].y*this.scale,this.ballList[b].size*this.scale,0,2*Math.PI);
         this.context.fill();
     }
@@ -119,7 +138,7 @@ Drawing.prototype.drawBalls = function(){
 //**************************************************************************
 //Menus
 //**************************************************************************
-Drawing.prototype.drawAlternateView = function(user,list){
+Drawing.prototype.drawAlternateView = function(user,list,mouse,click){
     //Chnage the view
     if(this.changeView == "ball"){
         if(this.curView != null) this.ballVision = true;
@@ -136,6 +155,7 @@ Drawing.prototype.drawAlternateView = function(user,list){
     if(this.curView == "leaderboard") this.drawLeaderboard(user, list);
     else if(this.curView == "stats") this.drawStats(user, list);
     else if(this.curView == "settings") this.drawSettings(user, list);
+    else if(this.curView == "target") this.drawTarget(user, list, mouse, click);
     else if(this.ballVision) this.drawBallHolders(list);
 }
 
@@ -238,7 +258,12 @@ Drawing.prototype.drawStats = function(user, list){
     this.context.fillText("Ball time (stacked): "+convertSeconds(user.balltimeS),(startX)*this.scale,(startY+=fontSize+2)*this.scale);
     this.context.fillText("Time with balls: "+(user.balltime/Math.max(user.lifetime,1)*100).toFixed(2)+"%",(startX)*this.scale,(startY+=fontSize+2)*this.scale);
     this.context.fillText("Total Balls: "+(user.ballCount),(startX)*this.scale,(startY+=fontSize+2)*this.scale);
+    this.context.fillText("Total Money Balls: "+(user.moneyBallCount),(startX)*this.scale,(startY+=fontSize+2)*this.scale);
+    this.context.fillText("Total Target Balls: "+(user.targetBallCount),(startX)*this.scale,(startY+=fontSize+2)*this.scale);
+    this.context.fillText("Total Target Balls Sent: "+(user.targetBallsSent),(startX)*this.scale,(startY+=fontSize+2)*this.scale);
     this.context.fillText("Total Swats: "+(user.swatCount),(startX)*this.scale,(startY+=fontSize+2)*this.scale);
+    startY+=fontSize+2;
+    this.context.fillText("Money: $"+(user.money),(startX)*this.scale,(startY+=fontSize+2)*this.scale);
 }
 
 Drawing.prototype.drawBallHolders = function(list){
@@ -250,17 +275,97 @@ Drawing.prototype.drawBallHolders = function(list){
 
     var ballHolderCount = 0;
     for(var l = 0; l < list.length; l++)
-        if(list[l].balls.length > 0){
-            this.context.fillText(list[l].name+" ["+list[l].balls.length+"]",10*this.scale,(this.BOX_SIZE-(ballHolderCount)*fontSize-5)*this.scale);
+        if(list[l].balls.length-list[l].hasMoneyBall > 0){
+            this.context.fillText(list[l].name+" ["+(list[l].balls.length-list[l].hasMoneyBall)+"]",10*this.scale,(this.BOX_SIZE-(ballHolderCount)*fontSize-5)*this.scale);
             ballHolderCount++;
         }
     this.context.fill();
+}
+
+Drawing.prototype.drawTarget = function(user, list, mouse, click){
+    this.context.beginPath();
+    this.context.fillStyle = "rgba(0,0,0,.6)";
+    this.context.fillRect(0,0,this.BOX_SIZE*this.scale,this.BOX_SIZE*this.scale);
+
+    var startX = 10, startY = 40;
+
+    var fontSize = 40;
+    this.context.fillStyle = "#FFF";
+    this.context.font = "Bold "+(fontSize)*this.scale+"px Arial";
+    this.context.fillText("Targeting [$"+user.money+"]",(startX)*this.scale,(startY+=fontSize+2)*this.scale);
+    fontSize = 23;
+    this.context.font = ""+(fontSize)*this.scale+"px Arial";
+    this.context.fillText("Select your target to send them a ball ($"+(50)+")",(startX)*this.scale,(startY+=fontSize+2)*this.scale);
+
+    //Draw List
+    list.sort(function(a,b){
+        if(a.name.toUpperCase() > b.name.toUpperCase()) return 1;
+        else if(a.name.toUpperCase() < b.name.toUpperCase()) return -1;
+        return 0;
+    });
+
+    var spacing = 10;
+    fontSize = 22; startX = 60; startY += 10;
+    this.context.font = "Bold "+(fontSize)*this.scale+"px Arial";
+    this.context.fillText("NAME",(startX)*this.scale,(startY+=fontSize+2)*this.scale);
+    this.context.fillText("SCORE",(startX+150)*this.scale,(startY)*this.scale);
+    this.context.fillText("#",(startX+255)*this.scale,(startY)*this.scale);
+    this.context.fillText("ACTIONS",(startX+300)*this.scale,(startY)*this.scale);
+
+    fontSize = 20;
+    this.context.font = ""+(fontSize)*this.scale+"px Arial";
+    for(var l = this.targetIndex; l < Math.min(list.length,this.targetIndex+this.maxTargetDisplay); l++){
+        this.context.fillText(list[l].name,(startX)*this.scale,(startY+=fontSize+spacing)*this.scale);
+        this.context.fillText(list[l].score,(startX+155)*this.scale,(startY)*this.scale);
+        this.context.fillText(list[l].balls.length-list[l].hasMoneyBall,(startX+255)*this.scale,(startY)*this.scale);
+
+        //Draw Target Button
+        var bigger = 0;
+        if(mouse.x >= startX+340 && mouse.x <= startX+340+fontSize && mouse.y >= startY-(fontSize-3) && mouse.y <= startY+3){
+            bigger = 10;
+            if(click){
+                //Send ball to target
+                this.ballTarget = list[l].id;
+            }
+        }
+        this.context.drawImage(this.targetImg,(startX+340-bigger/2)*this.scale,(startY-(fontSize-3)-bigger/2)*this.scale,(fontSize+bigger)*this.scale,(fontSize+bigger)*this.scale);
+    }
+
+    //Draw Arrows
+    var arrowSize = 30;
+    startX = 15; startY = 150;
+    if(this.targetIndex > 0){
+        //Draw up arrow
+        this.context.drawImage(this.arrowUpImg,(startX)*this.scale,(startY)*this.scale,arrowSize*this.scale,arrowSize*this.scale);
+        if(click && mouse.x >= startX && mouse.x <= startX+arrowSize && mouse.y >= startY && mouse.y <= startY+arrowSize){
+            this.targetIndex = Math.max(this.targetIndex-1,0);
+        }
+    }
+    if(list.length > this.targetIndex+this.maxTargetDisplay){
+        //Draw down arrow
+        this.context.drawImage(this.arrowDownImg,(startX)*this.scale,(450)*this.scale,arrowSize*this.scale,arrowSize*this.scale);
+        if(click && mouse.x >= startX && mouse.x <= startX+arrowSize && mouse.y >= 450 && mouse.y <= 450+arrowSize){
+            this.targetIndex = Math.min(this.targetIndex+1,list.length-this.maxTargetDisplay);
+        }
+    }
 }
 
 Drawing.prototype.drawSettings = function(user){
     this.context.beginPath();
     this.context.fillStyle = "rgba(0,0,0,.6)";
     this.context.fillRect(0,0,this.BOX_SIZE*this.scale,this.BOX_SIZE*this.scale);
+
+    var startX = 10, startY = 40;
+
+    var fontSize = 40;
+    this.context.fillStyle = "#FFF";
+    this.context.font = "Bold "+(fontSize)*this.scale+"px Arial";
+    this.context.fillText("Settings",(startX)*this.scale,(startY+=fontSize+2)*this.scale);
+    fontSize = 23;
+    this.context.font = ""+(fontSize)*this.scale+"px Arial";
+    this.context.fillText("Nice! You made it this far.",(startX)*this.scale,(startY+=fontSize+2)*this.scale);
+    this.context.fillText("This is in progress. Probably will do colors here.",(startX)*this.scale,(startY+=fontSize+2)*this.scale);
+    
 }
 
 //**************************************************************************
@@ -336,6 +441,12 @@ Drawing.prototype.loadImages = function(){
     this.vision_onImg.src   = "/images/vision_on.png";
     this.vision_offImg      = new Image;
     this.vision_offImg.src  = "/images/vision_off_v2.png";
+    this.targetImg          = new Image;
+    this.targetImg.src      = "/images/target.png";
+    this.arrowUpImg         = new Image;
+    this.arrowUpImg.src     = "/images/arrow_up.png";
+    this.arrowDownImg       = new Image;
+    this.arrowDownImg.src   = "/images/arrow_down.png";
 }
 
 function convertSeconds(sec){

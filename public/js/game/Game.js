@@ -76,7 +76,7 @@ Game.prototype.receiveGameState = function(state) {
                 }
             }
 
-            if(newBall) this.drawing.newBall(ball.auth);
+            if(newBall) this.drawing.newBall(ball.sender, ball.auth, ball.type);
         }
 
         //Remove bad balls
@@ -94,7 +94,6 @@ Game.prototype.receiveGameState = function(state) {
 		now.setMonth(now.getMonth() + 1);
 		document.cookie = "auth="+this.user.authToken+"; expires="+now;
 		this.firstData = false;
-        console.log("first");
 	}
 }
 
@@ -104,18 +103,17 @@ Game.prototype.update = function() {
             misc:       Input.MISC_KEYS
         },
         mouseState: {
-            left:       Input.LEFT_CLICK,
-            middle: 	Input.MIDDLE_CLICK,
-            right:      Input.RIGHT_CLICK
+            left:       Input.LEFT_CLICK
         },
         gameState: {
+            backColor:  this.drawing.backColor, 
             auth:       this.clickedBall,
-            backColor:  this.drawing.backColor,  
-        	returnType: "random"
+            sendBall:   this.drawing.ballTarget
         }
     });
     //Reset variables
     this.clickedBall = null;
+    this.drawing.ballTarget = null;
 
     this.draw();
     this.checkInput();
@@ -140,10 +138,10 @@ Game.prototype.draw = function() {
 
     //Draw Alternate Screens
     if(this.user) {
-        this.drawing.drawAlternateView(this.user, this.otherPlayers);
+        var mAdj = this.calculateMouseCoords(Input.MOUSE[0],Input.MOUSE[1],this.drawing.scale);
+        this.drawing.drawAlternateView(this.user, this.otherPlayers, mAdj, Input.LEFT_CLICK && !this.prevLeft);
 
         //Draw Menu Items
-        var mAdj = this.calculateMouseCoords(Input.MOUSE[0],Input.MOUSE[1],this.drawing.scale);
         if(mAdj.y < 40) this.drawing.drawMenuItems(this.user.menu, mAdj, Input.LEFT_CLICK && !this.prevLeft);
     }
 }

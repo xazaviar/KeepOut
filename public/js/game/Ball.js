@@ -1,4 +1,4 @@
-function Ball(auth, wid, hei){
+function Ball(sender, auth, type, wid, hei){
 	const speed = Math.random()*3+2;
 
 	this.auth		= auth;
@@ -7,6 +7,7 @@ function Ball(auth, wid, hei){
 	this.direction 	= [(Math.random()*2-1)*speed,(Math.random()*2-1)*speed];
 	this.size 		= 15;//Radius
 	this.keep		= true;
+	this.type		= type;
 }
 
 Ball.prototype.move = function(){

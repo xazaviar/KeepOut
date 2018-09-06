@@ -4,7 +4,7 @@ $(document).ready(function() {
     var name = "???";
 
     if(auth == ""){
-        //New sign in
+        // New sign in
         name = prompt("Please enter your name:");
         if (name == null || name == "") {
             name = "???";
