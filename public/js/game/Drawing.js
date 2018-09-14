@@ -18,6 +18,7 @@ function Drawing(context) {
 
     //Ball Target
     this.ballTarget = null;
+    this.storePurchase = null;
 
     this.loadImages();
 
@@ -29,6 +30,11 @@ function Drawing(context) {
     //Targeting drawing scroll bar
     this.maxTargetDisplay = 11;
     this.targetIndex = 0;
+
+    this.moneySign = "☊"; //https://coolsymbol.com/
+
+    //Tick
+    this.ticks = 0;
 }
 
 Drawing.create = function(context) {
@@ -97,6 +103,7 @@ Drawing.prototype.drawMenuItems = function(menuItems, mouse, click){
                   {img:this.statsImg, view:"stats"},
                   {img:this.ballVision?this.vision_onImg:this.vision_offImg, view:"ball"},
                   {img:this.targetImg, view:"target"},
+                  {img:this.storeImg, view:"store"},
                   {img:this.settingsImg, view:"settings"}];
     var index = 0;
     for(var m in menuItems){
@@ -156,6 +163,7 @@ Drawing.prototype.drawAlternateView = function(user,list,mouse,click){
     else if(this.curView == "stats") this.drawStats(user, list);
     else if(this.curView == "settings") this.drawSettings(user, list);
     else if(this.curView == "target") this.drawTarget(user, list, mouse, click);
+    else if(this.curView == "store") this.drawStore(user, mouse, click);
     else if(this.ballVision) this.drawBallHolders(list);
 }
 
@@ -236,7 +244,39 @@ Drawing.prototype.drawStats = function(user, list){
     this.context.fillText("RANK: "+userRank+"/"+(list.length+1),(startX)*this.scale,(startY+24)*this.scale);
     this.context.fillText("SCORE: "+user.score,(startX+160)*this.scale,(startY+24)*this.scale);
 
+    //Draw item Effects
+    startX = 350;
+    startY = 60;
+    var itemSize = fontSize;
+    if(user.shield!=null){
+        if(user.shield.type=="time"){
+            this.context.drawImage(this.shieldTimeImg,(startX)*this.scale,(startY)*this.scale,itemSize*this.scale,itemSize*this.scale);
+            this.context.fillText(convertSeconds(user.shield.dur),(startX+itemSize+10)*this.scale,(startY+fontSize-4)*this.scale);
+        }
+        else if(user.shield.type=="hits"){
+            this.context.drawImage(this.shieldHitImg,(startX)*this.scale,(startY)*this.scale,itemSize*this.scale,itemSize*this.scale);
+            this.context.fillText(user.shield.hits+" hits",(startX+itemSize+10)*this.scale,(startY+fontSize-4)*this.scale);
+        }
+    }
+    startY += itemSize+5;
+    if(user.activeBoost.amt > 1){
+        if(user.activeBoost.amt==2){
+            this.context.drawImage(this.x2Img,(startX)*this.scale,(startY)*this.scale,itemSize*this.scale,itemSize*this.scale);
+            this.context.fillText(convertSeconds(user.activeBoost.dur),(startX+itemSize+10)*this.scale,(startY+fontSize-4)*this.scale);
+        }
+        else if(user.activeBoost.amt==3){
+            this.context.drawImage(this.x3Img,(startX)*this.scale,(startY)*this.scale,itemSize*this.scale,itemSize*this.scale);
+            this.context.fillText(convertSeconds(user.activeBoost.dur),(startX+itemSize+10)*this.scale,(startY+fontSize-4)*this.scale);
+        }
+        else if(user.activeBoost.amt==4){
+            this.context.drawImage(this.x4Img,(startX)*this.scale,(startY)*this.scale,itemSize*this.scale,itemSize*this.scale);
+            this.context.fillText(convertSeconds(user.activeBoost.dur),(startX+itemSize+10)*this.scale,(startY+fontSize-4)*this.scale);
+        }
+    }
+
+
     //Leveling
+    startX = 10;
     startY = 125;
     this.context.fillText(user.level,(startX)*this.scale,startY*this.scale);
     this.context.fillText((user.level+1),(480)*this.scale,startY*this.scale);
@@ -263,7 +303,8 @@ Drawing.prototype.drawStats = function(user, list){
     this.context.fillText("Total Target Balls Sent: "+(user.targetBallsSent),(startX)*this.scale,(startY+=fontSize+2)*this.scale);
     this.context.fillText("Total Swats: "+(user.swatCount),(startX)*this.scale,(startY+=fontSize+2)*this.scale);
     startY+=fontSize+2;
-    this.context.fillText("Money: $"+(user.money),(startX)*this.scale,(startY+=fontSize+2)*this.scale);
+    this.context.fillText("Money: "+this.moneySign+(user.money),(startX)*this.scale,(startY+=fontSize+2)*this.scale);
+    this.context.fillText("Total Money: "+this.moneySign+(user.moneyTotal),(startX)*this.scale,(startY+=fontSize+2)*this.scale);
 }
 
 Drawing.prototype.drawBallHolders = function(list){
@@ -292,10 +333,10 @@ Drawing.prototype.drawTarget = function(user, list, mouse, click){
     var fontSize = 40;
     this.context.fillStyle = "#FFF";
     this.context.font = "Bold "+(fontSize)*this.scale+"px Arial";
-    this.context.fillText("Targeting [$"+user.money+"]",(startX)*this.scale,(startY+=fontSize+2)*this.scale);
+    this.context.fillText("Targeting ["+user.targetBalls+"]",(startX)*this.scale,(startY+=fontSize+2)*this.scale);
     fontSize = 23;
     this.context.font = ""+(fontSize)*this.scale+"px Arial";
-    this.context.fillText("Select your target to send them a ball ($"+(50)+")",(startX)*this.scale,(startY+=fontSize+2)*this.scale);
+    this.context.fillText("Select your target to send them a ball.",(startX)*this.scale,(startY+=fontSize+2)*this.scale);
 
     //Draw List
     list.sort(function(a,b){
@@ -315,6 +356,27 @@ Drawing.prototype.drawTarget = function(user, list, mouse, click){
     fontSize = 20;
     this.context.font = ""+(fontSize)*this.scale+"px Arial";
     for(var l = this.targetIndex; l < Math.min(list.length,this.targetIndex+this.maxTargetDisplay); l++){
+        if(list[l].isActive) this.context.fillStyle = "#FFF";
+        else this.context.fillStyle = "#AAA";
+
+        if(list[l].shield!=null && (this.ticks%2==0 || list[l].activeBoost.amt==1)){
+            var img;
+            if(list[l].shield.type=="hits") img = this.shieldHitImg;
+            else if(list[l].shield.type=="time") img = this.shieldTimeImg;
+            else img = this.shieldImg;
+
+            this.context.drawImage(img,(startX-fontSize)*this.scale,(startY+fontSize-5)*this.scale,fontSize*this.scale,fontSize*this.scale);
+        }
+        if(list[l].activeBoost.amt>1 && (this.ticks%2==1 || list[l].shield==null)){
+            var img;
+            if(list[l].activeBoost.amt==2) img = this.x2Img;
+            else if(list[l].activeBoost.amt==3) img = this.x3Img;
+            else if(list[l].activeBoost.amt==4) img = this.x4Img;
+
+            this.context.drawImage(img,(startX-fontSize)*this.scale,(startY+fontSize-5)*this.scale,fontSize*this.scale,fontSize*this.scale);
+        }
+
+
         this.context.fillText(list[l].name,(startX)*this.scale,(startY+=fontSize+spacing)*this.scale);
         this.context.fillText(list[l].score,(startX+155)*this.scale,(startY)*this.scale);
         this.context.fillText(list[l].balls.length-list[l].hasMoneyBall,(startX+255)*this.scale,(startY)*this.scale);
@@ -365,7 +427,78 @@ Drawing.prototype.drawSettings = function(user){
     this.context.font = ""+(fontSize)*this.scale+"px Arial";
     this.context.fillText("Nice! You made it this far.",(startX)*this.scale,(startY+=fontSize+2)*this.scale);
     this.context.fillText("This is in progress. Probably will do colors here.",(startX)*this.scale,(startY+=fontSize+2)*this.scale);
-    
+}
+
+Drawing.prototype.drawStore = function(user, mouse, click){
+    const storeLen = 3;
+    const imgToId = [{id:0, src:this.targetImg},
+                     {id:1, src:this.shieldTimeImg},
+                     {id:2, src:this.shieldHitImg},
+                     {id:3, src:this.x2Img},
+                     {id:4, src:this.x3Img},
+                     {id:5, src:this.x4Img}];
+
+    this.context.beginPath();
+    this.context.fillStyle = "rgba(0,0,0,.6)";
+    this.context.fillRect(0,0,this.BOX_SIZE*this.scale,this.BOX_SIZE*this.scale);
+
+    var startX      = 10, 
+        startY      = 40,
+        itemSize    = 80, 
+        edgeSpace   = 30;
+
+    var spacing = (this.BOX_SIZE-edgeSpace*2)/storeLen;
+    startX = spacing/2 - itemSize/2;
+
+    var fontSize = 40;
+    this.context.fillStyle = "#FFF";
+    this.context.font = "Bold "+(fontSize)*this.scale+"px Arial";
+    this.context.fillText("Store ["+this.moneySign+user.money+"]",(startX)*this.scale,(startY+=fontSize+2)*this.scale);
+    fontSize = 18;
+    this.context.font = ""+(fontSize)*this.scale+"px Arial";
+
+    //Draw Inventory
+    var dist = 60;
+    startY = 100;
+    for(var i in user.store){
+        var item = user.store[i];
+        if(item.available){
+            var img = imgToId[item.id].src;
+            this.context.fillStyle = "#FFF";
+            this.context.font = ""+(fontSize)*this.scale+"px Arial";
+            this.context.drawImage(img,(edgeSpace+startX+(i%storeLen)*spacing)*this.scale,(startY+(itemSize+dist)*parseInt(i/storeLen))*this.scale,itemSize*this.scale,itemSize*this.scale);
+            this.context.fillText(item.name,(edgeSpace+startX+(i%storeLen)*spacing)*this.scale,(startY+itemSize+fontSize+(itemSize+dist)*parseInt(i/storeLen))*this.scale);
+
+            //Button
+            var buttonWidth = itemSize*.8,
+                buttonHeight = fontSize+4,
+                leftEdge = (itemSize-buttonWidth)/2+edgeSpace+startX+(i%storeLen)*spacing,
+                topEdge = startY+itemSize+fontSize*1.5+(itemSize+dist)*parseInt(i/storeLen),
+                canBuy = (item.type == "shield" && (user.shield==null||(user.shield.type=="hits" && item.name=="Hits Shield"))) || (item.type=="boost" && user.activeBoost.amt == 1) || item.type=="ball";
+            if(mouse.x >= leftEdge && mouse.x <= leftEdge + buttonWidth && mouse.y >= topEdge && mouse.y < topEdge + buttonHeight){
+                if(click) this.storePurchase = item.name;
+
+                this.context.beginPath();
+                this.context.fillStyle = "#FFF";
+                this.context.rect(leftEdge*this.scale,topEdge*this.scale,buttonWidth*this.scale,buttonHeight*this.scale);
+                this.context.fill();
+                if(user.money >= item.cost && canBuy) this.context.fillStyle = "rgb("+(this.backColor.r-40)+","+(this.backColor.g-40)+","+(this.backColor.b-40)+")";
+                else this.context.fillStyle = "#F00";
+            }
+            else{
+                this.context.beginPath();
+                this.context.strokeStyle = "#FFF";
+                this.context.rect(leftEdge*this.scale,topEdge*this.scale,buttonWidth*this.scale,buttonHeight*this.scale);
+                this.context.stroke();
+                if(user.money >= item.cost && canBuy) this.context.fillStyle = "#FFF";
+                else this.context.fillStyle = "#F00";
+            }
+            this.context.beginPath();
+            this.context.font = "bold "+(fontSize)*this.scale+"px Arial";
+            this.context.fillText(this.moneySign+item.cost,(buttonWidth/4+edgeSpace+startX+(i%storeLen)*spacing)*this.scale,(startY+itemSize+buttonHeight*2+(itemSize+dist)*parseInt(i/storeLen))*this.scale);
+            this.context.fill();
+        }
+    }
 }
 
 //**************************************************************************
@@ -440,13 +573,31 @@ Drawing.prototype.loadImages = function(){
     this.vision_onImg       = new Image;
     this.vision_onImg.src   = "/images/vision_on.png";
     this.vision_offImg      = new Image;
-    this.vision_offImg.src  = "/images/vision_off_v2.png";
+    this.vision_offImg.src  = "/images/vision_off.png";
     this.targetImg          = new Image;
     this.targetImg.src      = "/images/target.png";
+    this.storeImg           = new Image;
+    this.storeImg.src       = "/images/store.png";
+
+    //Menuing
     this.arrowUpImg         = new Image;
     this.arrowUpImg.src     = "/images/arrow_up.png";
     this.arrowDownImg       = new Image;
     this.arrowDownImg.src   = "/images/arrow_down.png";
+    this.shieldImg          = new Image;
+    this.shieldImg.src      = "/images/shield.png";
+
+    //Store Items
+    this.shieldTimeImg      = new Image;
+    this.shieldTimeImg.src  = "/images/shield_time.png";
+    this.shieldHitImg       = new Image;
+    this.shieldHitImg.src   = "/images/shield_hits.png";
+    this.x2Img              = new Image;
+    this.x2Img.src          = "/images/x2.png";
+    this.x3Img              = new Image;
+    this.x3Img.src          = "/images/x3.png";
+    this.x4Img              = new Image;
+    this.x4Img.src          = "/images/x4.png";
 }
 
 function convertSeconds(sec){

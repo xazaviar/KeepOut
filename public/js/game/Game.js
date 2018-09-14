@@ -1,3 +1,6 @@
+const fps = 60;
+
+
 function Game(socket, drawing){
     this.socket = socket;
     this.drawing = drawing;
@@ -13,6 +16,12 @@ function Game(socket, drawing){
     this.recentClick        = false;
 
     this.saveAuth           = true;
+
+    var context = this;
+
+    setInterval(function(){
+        context.drawing.ticks++;
+    },1000);
 }
 
 Game.create = function(socket, canvasElement) {
@@ -108,12 +117,14 @@ Game.prototype.update = function() {
         gameState: {
             backColor:  this.drawing.backColor, 
             auth:       this.clickedBall,
-            sendBall:   this.drawing.ballTarget
+            sendBall:   this.drawing.ballTarget,
+            storePurchase: this.drawing.storePurchase
         }
     });
     //Reset variables
     this.clickedBall = null;
     this.drawing.ballTarget = null;
+    this.drawing.storePurchase = null;
 
     this.draw();
     this.checkInput();
@@ -161,6 +172,10 @@ Game.prototype.checkInput = function(){
     }
 
     this.prevLeft = Input.LEFT_CLICK;
+}
+
+//Updaters
+Game.prototype.constUpdate = function(){
 }
 
 //**************************************************************************
