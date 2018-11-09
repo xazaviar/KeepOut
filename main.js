@@ -36,9 +36,9 @@ app.get('/*', function (req, res, next) {
 io.on('connection', (socket) => {
 	socket.on('player-connect', (data) => {
 		//Correct name length
-    data.name = data.name.split(" ").join("_");
+        data.name = data.name.split(" ").join("_");
 		if(data.name.length > 10) data.name = data.name.substring(0,10);
-    if(data.name.length < 3) data.name = "???";
+        if(data.name.length < 3) data.name = "???";
 		
 		if(data.auth != "")
     		game.reconnectPlayer(socket, data.name, data.auth);

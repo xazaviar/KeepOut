@@ -31,7 +31,7 @@ function Drawing(context) {
     this.maxTargetDisplay = 11;
     this.targetIndex = 0;
 
-    this.moneySign = "☊"; //https://coolsymbol.com/
+    this.moneySign = "ϡ"; //https://coolsymbol.com/
 
     //Tick
     this.ticks = 0;
@@ -186,7 +186,8 @@ Drawing.prototype.drawLeaderboard = function(user, list){
     var startX = 20, startY = 60;
     this.context.font = ""+22*this.scale+"px Arial";
     this.context.fillText("#",startX*this.scale,startY*this.scale);
-    this.context.fillText("[LVL] NAME",(startX+70)*this.scale,startY*this.scale);
+    // this.context.fillText("[LVL] NAME",(startX+70)*this.scale,startY*this.scale);
+    this.context.fillText("NAME",(startX+70)*this.scale,startY*this.scale);
     this.context.fillText("SCORE",(startX+360)*this.scale,startY*this.scale);
 
     startY = 60;
@@ -198,7 +199,8 @@ Drawing.prototype.drawLeaderboard = function(user, list){
             this.context.font = "Bold "+(fontSize)*this.scale+"px Arial";
         }
         this.context.fillText(rankings[r].rank, startX*this.scale,((r+1)*fontSize+5+startY)*this.scale);
-        this.context.fillText("["+rankings[r].level+"] "+rankings[r].name,(startX+70)*this.scale,((r+1)*fontSize+5+startY)*this.scale);
+        // this.context.fillText("["+rankings[r].level+"] "+rankings[r].name,(startX+70)*this.scale,((r+1)*fontSize+5+startY)*this.scale);
+        this.context.fillText(rankings[r].name,(startX+70)*this.scale,((r+1)*fontSize+5+startY)*this.scale);
         this.context.fillText(rankings[r].score,(startX+360)*this.scale,((r+1)*fontSize+5+startY)*this.scale);
         
     }
@@ -316,8 +318,8 @@ Drawing.prototype.drawBallHolders = function(list){
 
     var ballHolderCount = 0;
     for(var l = 0; l < list.length; l++)
-        if(list[l].balls.length-list[l].hasMoneyBall > 0){
-            this.context.fillText(list[l].name+" ["+(list[l].balls.length-list[l].hasMoneyBall)+"]",10*this.scale,(this.BOX_SIZE-(ballHolderCount)*fontSize-5)*this.scale);
+        if(list[l].ballCount > 0){
+            this.context.fillText(list[l].name+" ["+list[l].ballCount+"]",10*this.scale,(this.BOX_SIZE-(ballHolderCount)*fontSize-5)*this.scale);
             ballHolderCount++;
         }
     this.context.fill();
@@ -379,7 +381,7 @@ Drawing.prototype.drawTarget = function(user, list, mouse, click){
 
         this.context.fillText(list[l].name,(startX)*this.scale,(startY+=fontSize+spacing)*this.scale);
         this.context.fillText(list[l].score,(startX+155)*this.scale,(startY)*this.scale);
-        this.context.fillText(list[l].balls.length-list[l].hasMoneyBall,(startX+255)*this.scale,(startY)*this.scale);
+        this.context.fillText(list[l].ballCount,(startX+255)*this.scale,(startY)*this.scale);
 
         //Draw Target Button
         var bigger = 0;

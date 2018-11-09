@@ -1,6 +1,3 @@
-const fps = 60;
-
-
 function Game(socket, drawing){
     this.socket = socket;
     this.drawing = drawing;
@@ -15,12 +12,13 @@ function Game(socket, drawing){
 
     this.recentClick        = false;
 
-    this.saveAuth           = true;
+    this.saveAuth           = false;
 
     var context = this;
 
     setInterval(function(){
         context.drawing.ticks++;
+        context.constUpdate();
     },1000);
 }
 
@@ -37,12 +35,16 @@ Game.prototype.init = function(name, auth) {
     this.socket.on('update', function(data) {
         context.receiveGameState(data);
     });
+    this.socket.on('initial', function(data) {
+        context.user  = data['self'];
+        context.otherPlayers = data['players'];
+    });
     this.socket.emit('player-connect', {
     	name: name,
     	auth: auth
     });
     this.socket.on('failed-connect', function(data) {
-        name = prompt("Could not find token on server. Please enter your name:");
+        // name = prompt("Could not find token on server. Please enter your name:");
         if (name == null || name == "") {
             name = "???";
         }
@@ -63,38 +65,73 @@ Game.prototype.stopAnimation = function() {
 }
 
 Game.prototype.receiveGameState = function(state) {
-    this.user  = state['self'];
-    this.otherPlayers = state['players'];
+    // this.user  = state['self'];
+    // this.otherPlayers = state['players'];
 
-    // console.log(this.user);
-
-    if(!this.recentClick){
-        //Correct balls
-        for(var o = 0; o < this.drawing.ballList.length; o++)
-            this.drawing.ballList[o].keep = false;
-
-        for(var b in this.user.balls){
-            var ball = this.user.balls[b];
-
-            var newBall = true;
-            for(var o = 0; o < this.drawing.ballList.length; o++){
-                if(this.drawing.ballList[o].auth == ball.auth){
-                    this.drawing.ballList[o].keep = true;
-                    newBall = false;
+    var updates = state['updates'];
+    
+    for(var u in updates){
+        if(updates[u].type == "newPlayer"){
+            if(updates[u].player.id != this.user.id)
+                this.otherPlayers.push(updates[u].player);
+        }
+        else if(updates[u].type == "playerDisconnect"){
+            for(var o in this.otherPlayers){
+                if(updates[u].id == this.otherPlayers[o].id){
+                    this.otherPlayers[o].isActive = false;
                     break;
+                }  
+            }
+        }
+        else if(updates[u].type == "playerReconnect"){
+            for(var o in this.otherPlayers){
+                if(updates[u].oldID == this.otherPlayers[o].id){
+                    this.otherPlayers[o].isActive = true;
+                    this.otherPlayers[o].id = updates[u].newID;
+                    break;
+                }  
+            }
+        }
+        else if(updates[u].type == "playerChange"){
+            //Check for self update
+            if(updates[u].player.id == this.user.id){
+                this.user = updates[u].player;
+            }
+            else{
+                for(var o in this.otherPlayers){
+                    if(updates[u].player.id == this.otherPlayers[o].id){
+                        this.otherPlayers[o] = updates[u].player;
+                        break;
+                    }  
                 }
             }
-
-            if(newBall) this.drawing.newBall(ball.sender, ball.auth, ball.type);
-        }
-
-        //Remove bad balls
-        for(var o = 0; o < this.drawing.ballList.length; o++){
-            if(!this.drawing.ballList[o].keep) 
-                this.drawing.removeBall(this.drawing.ballList[o].auth);
         }
     }
-    else this.recentClick = false;
+
+    //Correct balls
+    for(var o = 0; o < this.drawing.ballList.length; o++)
+        this.drawing.ballList[o].keep = false;
+
+    for(var b in this.user.balls){
+        var ball = this.user.balls[b];
+
+        var newBall = true;
+        for(var o = 0; o < this.drawing.ballList.length; o++){
+            if(this.drawing.ballList[o].auth == ball.auth){
+                this.drawing.ballList[o].keep = true;
+                newBall = false;
+                break;
+            }
+        }
+
+        if(newBall) this.drawing.newBall(ball.sender, ball.auth, ball.type);
+    }
+
+    //Remove bad balls
+    for(var o = 0; o < this.drawing.ballList.length; o++){
+        if(!this.drawing.ballList[o].keep) 
+            this.drawing.removeBall(this.drawing.ballList[o].auth);
+    }
     
 
     //Create cookie
@@ -107,6 +144,8 @@ Game.prototype.receiveGameState = function(state) {
 }
 
 Game.prototype.update = function() {
+    // console.log("FRAME "+this.animationFrameId);
+
 	this.socket.emit('player-action', {
         keyboardState: {
             misc:       Input.MISC_KEYS
@@ -165,7 +204,7 @@ Game.prototype.checkInput = function(){
             if(this.drawing.ballList[b].clicked(mAdj)){
                 this.clickedBall = this.drawing.ballList[b].auth;
                 this.drawing.removeBall(this.clickedBall); //Immediate remove
-                this.recentClick = true;
+                // this.recentClick = true;
                 break;
             }
         }
@@ -176,6 +215,21 @@ Game.prototype.checkInput = function(){
 
 //Updaters
 Game.prototype.constUpdate = function(){
+    // console.log("TICK "+this.drawing.ticks);
+
+    if(this.otherPlayers.length > 0){
+        //Update Self
+
+
+
+        //Update others
+        for(var o in this.otherPlayers){
+            var player = this.otherPlayers[o];
+
+            if(player.shield) player.score += player.activeBoost.amt;
+            else player.score += player.activeBoost.amt - player.ballCount;
+        }
+    }
 }
 
 //**************************************************************************

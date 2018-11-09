@@ -5,10 +5,10 @@ $(document).ready(function() {
 
     if(auth == ""){
         // New sign in
-        name = prompt("Please enter your name:");
-        if (name == null || name == "") {
-            name = "???";
-        }
+        // name = prompt("Please enter your name:");
+        // if (name == null || name == "") {
+        //     name = "???";
+        // }
     }
 
     var socket = io();
