@@ -10,7 +10,7 @@ function Game(socket, drawing){
     this.clickedBall		= false;
     this.firstData 			= true;
 
-    this.recentClick        = false;
+    this.recentBalls        = [];
 
     this.saveAuth           = false;
 
@@ -72,6 +72,7 @@ Game.prototype.receiveGameState = function(state) {
     
     for(var u in updates){
         if(updates[u].type == "newPlayer"){
+            console.log("NEW PLAYER");
             if(updates[u].player.id != this.user.id)
                 this.otherPlayers.push(updates[u].player);
         }
@@ -93,18 +94,17 @@ Game.prototype.receiveGameState = function(state) {
             }
         }
         else if(updates[u].type == "playerChange"){
-            //Check for self update
-            if(updates[u].player.id == this.user.id){
-                this.user = updates[u].player;
+            console.log("PLAYER CHANGE");
+            for(var o in this.otherPlayers){
+                if(updates[u].player.id == this.otherPlayers[o].id){
+                    this.otherPlayers[o] = updates[u].player;
+                    break;
+                }  
             }
-            else{
-                for(var o in this.otherPlayers){
-                    if(updates[u].player.id == this.otherPlayers[o].id){
-                        this.otherPlayers[o] = updates[u].player;
-                        break;
-                    }  
-                }
-            }
+        }
+        else if(updates[u].type == "selfChange"){
+            console.log("SELF CHANGE");
+            this.user = updates[u].player;
         }
     }
 
@@ -115,16 +115,27 @@ Game.prototype.receiveGameState = function(state) {
     for(var b in this.user.balls){
         var ball = this.user.balls[b];
 
-        var newBall = true;
-        for(var o = 0; o < this.drawing.ballList.length; o++){
-            if(this.drawing.ballList[o].auth == ball.auth){
-                this.drawing.ballList[o].keep = true;
-                newBall = false;
+        //Check for recently click
+        var recent = false;
+        for(var r in this.recentBalls){
+            if(ball.auth == this.recentBalls[r]){
+                recent = true;
                 break;
             }
         }
 
-        if(newBall) this.drawing.newBall(ball.sender, ball.auth, ball.type);
+        if(!recent){
+            var newBall = true;
+            for(var o = 0; o < this.drawing.ballList.length; o++){
+                if(this.drawing.ballList[o].auth == ball.auth){
+                    this.drawing.ballList[o].keep = true;
+                    newBall = false;
+                    break;
+                }
+            }
+
+            if(newBall) this.drawing.newBall(ball.sender, ball.auth, ball.type);
+        }
     }
 
     //Remove bad balls
@@ -203,8 +214,8 @@ Game.prototype.checkInput = function(){
         for(var b in this.drawing.ballList){
             if(this.drawing.ballList[b].clicked(mAdj)){
                 this.clickedBall = this.drawing.ballList[b].auth;
+                this.recentBalls.push(""+this.clickedBall);
                 this.drawing.removeBall(this.clickedBall); //Immediate remove
-                // this.recentClick = true;
                 break;
             }
         }
@@ -219,7 +230,30 @@ Game.prototype.constUpdate = function(){
 
     if(this.otherPlayers.length > 0){
         //Update Self
+        if(this.user.activeBoost.dur > 0) this.user.activeBoost.dur--;
+        else this.user.activeBoost = {amt:1,dur:-1};
 
+        if(this.user.shield!=null)
+            if(this.user.shield.type == "time" && this.user.shield.dur > 0) this.user.shield.dur--;
+            else if(this.user.shield.type == "time") this.user.shield = null
+            else if(this.user.shield.type == "hits" && this.user.shield.hits <= 0) this.user.shield = null;
+
+        var activeShield = (this.user.shield != null && (this.user.shield.type=="time" || (this.user.shield.type=="hits" && this.user.shield.hits > 0)))
+
+        //Update Counters
+        this.user.lifetime++;
+        if(!activeShield) this.user.balltimeS += this.user.balls.length-this.user.hasMoneyBall;
+        if(!activeShield && this.user.balls.length-this.user.hasMoneyBall > 0) this.user.balltime++;
+        if(activeShield) this.user.score += this.user.activeBoost.amt;
+        else this.user.score += this.user.activeBoost.amt - (this.user.balls.length-this.user.hasMoneyBall);
+
+        //Score records
+        if(this.user.score > this.user.highScore) this.user.highScore = 0+this.user.score;
+        if(this.user.score < this.user.lowScore) this.user.lowScore = 0+this.user.score;
+
+        if(this.user.isActive) this.user.activetime++;
+
+        if(this.user.balls.length-this.user.hasMoneyBall == 0) this.user.experience+=1; //Need to pull from file
 
 
         //Update others
@@ -229,6 +263,8 @@ Game.prototype.constUpdate = function(){
             if(player.shield) player.score += player.activeBoost.amt;
             else player.score += player.activeBoost.amt - player.ballCount;
         }
+
+        this.recentBalls = [];
     }
 }
 

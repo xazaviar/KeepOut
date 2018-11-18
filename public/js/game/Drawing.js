@@ -282,8 +282,8 @@ Drawing.prototype.drawStats = function(user, list){
     startY = 125;
     this.context.fillText(user.level,(startX)*this.scale,startY*this.scale);
     this.context.fillText((user.level+1),(480)*this.scale,startY*this.scale);
-    this.context.fillText("Exp: "+user.experience,(startX)*this.scale,(startY+30)*this.scale);
-    this.context.fillText("Next Level: "+user.nextLevel,(startX)*this.scale,(startY+50)*this.scale);
+    // this.context.fillText("Exp: "+user.experience,(startX)*this.scale,(startY+30)*this.scale);
+    // this.context.fillText("Next Level: "+user.nextLevel,(startX)*this.scale,(startY+50)*this.scale);
 
     //EXP bar
     this.context.fillRect((startX+15)*this.scale,(startY-15)*this.scale,3*this.scale,16*this.scale);
@@ -293,7 +293,7 @@ Drawing.prototype.drawStats = function(user, list){
     this.context.fillRect((startX+15)*this.scale,(startY-12)*this.scale,exp*this.scale,9*this.scale);
 
     //Additional Stats
-    startY = 200;
+    startY = 135;
     this.context.fillText("Life time: "+convertSeconds(user.lifetime),(startX)*this.scale,(startY+=fontSize+2)*this.scale);
     this.context.fillText("Active time: "+convertSeconds(user.activetime),(startX)*this.scale,(startY+=fontSize+2)*this.scale);
     this.context.fillText("Ball time: "+convertSeconds(user.balltime),(startX)*this.scale,(startY+=fontSize+2)*this.scale);
@@ -304,6 +304,8 @@ Drawing.prototype.drawStats = function(user, list){
     this.context.fillText("Total Target Balls: "+(user.targetBallCount),(startX)*this.scale,(startY+=fontSize+2)*this.scale);
     this.context.fillText("Total Target Balls Sent: "+(user.targetBallsSent),(startX)*this.scale,(startY+=fontSize+2)*this.scale);
     this.context.fillText("Total Swats: "+(user.swatCount),(startX)*this.scale,(startY+=fontSize+2)*this.scale);
+    this.context.fillText("High Score: "+(user.highScore),(startX)*this.scale,(startY+=fontSize+2)*this.scale);
+    this.context.fillText("Low Score: "+(user.lowScore),(startX)*this.scale,(startY+=fontSize+2)*this.scale);
     startY+=fontSize+2;
     this.context.fillText("Money: "+this.moneySign+(user.money),(startX)*this.scale,(startY+=fontSize+2)*this.scale);
     this.context.fillText("Total Money: "+this.moneySign+(user.moneyTotal),(startX)*this.scale,(startY+=fontSize+2)*this.scale);
