@@ -13,9 +13,9 @@ $(document).ready(function() {
 
     var socket = io();
   	var canvas = document.getElementById('canvas');
-  	Input.applyEventHandlers();
-  	Input.addMouseTracker(canvas);
-    Input.addTouchTracker(canvas);
+  	// Input.applyEventHandlers();
+  	// Input.addMouseTracker(canvas);
+    // Input.addTouchTracker(canvas);
 
   	var game = Game.create(socket, canvas);
 

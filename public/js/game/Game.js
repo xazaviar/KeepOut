@@ -23,9 +23,9 @@ function Game(socket, drawing){
 }
 
 Game.create = function(socket, canvasElement) {
-    var canvasContext = canvasElement.getContext('2d');
+    // var canvasContext = canvasElement.getContext('2d');
 
-    var drawing = Drawing.create(canvasContext);
+    var drawing = Drawing_html.create();
     return new Game(socket, drawing);
 }
 
@@ -65,14 +65,11 @@ Game.prototype.stopAnimation = function() {
 }
 
 Game.prototype.receiveGameState = function(state) {
-    // this.user  = state['self'];
-    // this.otherPlayers = state['players'];
-
     var updates = state['updates'];
     
     for(var u in updates){
         if(updates[u].type == "newPlayer"){
-            console.log("NEW PLAYER");
+            // console.log("NEW PLAYER");
             if(updates[u].player.id != this.user.id)
                 this.otherPlayers.push(updates[u].player);
         }
@@ -94,7 +91,7 @@ Game.prototype.receiveGameState = function(state) {
             }
         }
         else if(updates[u].type == "playerChange"){
-            console.log("PLAYER CHANGE");
+            // console.log("PLAYER CHANGE");
             for(var o in this.otherPlayers){
                 if(updates[u].player.id == this.otherPlayers[o].id){
                     this.otherPlayers[o] = updates[u].player;
@@ -103,7 +100,7 @@ Game.prototype.receiveGameState = function(state) {
             }
         }
         else if(updates[u].type == "selfChange"){
-            console.log("SELF CHANGE");
+            // console.log("SELF CHANGE");
             this.user = updates[u].player;
         }
     }
@@ -134,7 +131,9 @@ Game.prototype.receiveGameState = function(state) {
                 }
             }
 
-            if(newBall) this.drawing.newBall(ball.sender, ball.auth, ball.type);
+            if(newBall) this.drawing.newBall(ball.sender, ball.auth, ball.type, this);
+                
+                     
         }
     }
 
@@ -177,19 +176,20 @@ Game.prototype.update = function() {
     this.drawing.storePurchase = null;
 
     this.draw();
-    this.checkInput();
+    // this.checkInput();
     this.animate();
 }
 
 Game.prototype.draw = function() {
 	//Resize the canvas
-    this.drawing.resize();
+    if(this.user)
+        this.drawing.resize(this.user.menu);
 
 	// Clear the canvas
-    this.drawing.clear();
+    // this.drawing.clear();
 
     //Set scale
-    this.drawing.setScale($("#gameArea").width());
+    // this.drawing.setScale($("#gameArea").width());
 
     //Draw background
     this.drawing.drawBackground();
@@ -198,13 +198,8 @@ Game.prototype.draw = function() {
     this.drawing.drawBalls();
 
     //Draw Alternate Screens
-    if(this.user) {
-        var mAdj = this.calculateMouseCoords(Input.MOUSE[0],Input.MOUSE[1],this.drawing.scale);
-        this.drawing.drawAlternateView(this.user, this.otherPlayers, mAdj, Input.LEFT_CLICK && !this.prevLeft);
-
-        //Draw Menu Items
-        if(mAdj.y < 40) this.drawing.drawMenuItems(this.user.menu, mAdj, Input.LEFT_CLICK && !this.prevLeft);
-    }
+    if(this.user)
+        this.drawing.drawAlternateView(this.user, this.otherPlayers);
 }
 
 Game.prototype.checkInput = function(){

@@ -1,5 +1,5 @@
 function Ball(sender, auth, type, wid, hei){
-	const speed = Math.random()*3+2;
+	const speed = Math.random()*4+4;
 
 	this.auth		= auth;
 	this.x 			= parseInt(Math.random()*wid);
@@ -29,6 +29,24 @@ Ball.prototype.bounce = function(wid, hei){
 		this.direction[1] *= -1;
 	}else if(this.y-this.size < 0){
 		this.y = 0+this.size;
+		this.direction[1] *= -1;
+	}
+}
+
+Ball.prototype.bounce2 = function(wid, hei, size, margin){
+	if(this.x+size+margin >= wid){
+		this.x = wid-size-margin;
+		this.direction[0] *= -1;
+	}else if(this.x < -margin){
+		this.x = -margin;
+		this.direction[0] *= -1;
+	} 
+
+	if(this.y+size+margin >= hei){
+		this.y = hei-size-margin;
+		this.direction[1] *= -1;
+	}else if(this.y < -margin){
+		this.y = -margin;
 		this.direction[1] *= -1;
 	}
 }
