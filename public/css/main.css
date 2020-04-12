@@ -6,20 +6,41 @@ body {
 	overflow: hidden;
 }
 
-.title {
+
+.buttonHolder {
 	display: flex;
 	margin: auto; 
 	height: 100%;
 	color: white;
-	font-size: 40pt;
-	font-family: Arial;
 	z-index: 0;
-	font-weight: bold;
 }
 
-.title p {
+.buttonHolder p {
+	font-weight: bold;
+	font-size: 40pt;
+	font-family: Arial;
 	text-align: center;
 	margin: auto;
+}
+
+button.signin {
+	text-align: center;
+	margin: auto;
+	width: 191px;
+	height: 46px;
+	background-image: url("../images/google-signin-button/2x/btn_google_signin_light_normal_web@2x.png");
+	background-size: cover;
+    border: none;
+    padding: 0px;
+    background-color: transparent;
+}
+
+button.signin:focus{
+	background-image: url("../images/google-signin-button/2x/btn_google_signin_light_focus_web@2x.png");
+}
+
+button.signin:active{
+	background-image: url("../images/google-signin-button/2x/btn_google_signin_light_pressed_web@2x.png");
 }
 
 .noselect {
@@ -30,118 +51,4 @@ body {
         -ms-user-select: none; /* Internet Explorer/Edge */
             user-select: none; /* Non-prefixed version, currently
                                   supported by Chrome and Opera */
-}
-
-/*************************************************
- * Menuing CSS
- **************************************************/
-.overlay {
-	position: absolute;
-	overflow: hidden;
-	top: 50px;
-	left: 0;
-	width: 100%;
-	height: 100%;
-	background-color: rgba(0,0,0,.6);
-	z-index: 2;
-}
-
-.menuBar {
-	position: fixed;
-	top: 0;
-	left: 0;
-	width: 100%;
-	height: 8px;
-	z-index: 100;
-	background-color: rgba(0,0,0,.6);
-	-webkit-transition:height 200ms ease-in;
-       -moz-transition:height 200ms ease-in;
-         -o-transition:height 200ms ease-in;
-    	    transition:height 200ms ease-in;
-}
-
-.menuBar:hover{
-	background-color: rgba(0,0,0,.6);
-	display: block;
-	height: 50px;
-}
-
-.menuItem {
-	display: none;
-	float: left;
-	cursor: pointer;
-}
-
-.menuItem img {
-	height: 100%;
-	display: block;
-	margin: auto;
-}
-
-.menuItem:hover {
-	background-color: rgba(140,140,140,.6);
-}
-
-.view {
-	overflow: auto;
-	color: white;
-	font-size: 25pt;
-	font-family: Arial;
-}
-
-/*******************LEADERBOARD********************/
-.view table {
-	cursor: default;
-	margin: auto;
-	color: white;
-	text-align: center;
-	font-size: 20pt;
-}
-
-.view tr#user{
-	font-weight: bold;
-}
-
-
-/*************************************************
- * Ball CSS
- **************************************************/
-.ball {
-	z-index: 1;
-  	border-radius: 50%;
-}
-
-.ballClick {
-	cursor: pointer;
-	position: absolute;
-}
-
-.NORMAL {
-  	background-color: black;
-}
-
-.TARGET {
-  	background-color: red;
-}
-
-.MONEY {
-  	background-color: #FFD700;
-}
-
-
-/*************************************************
- * OLD
- **************************************************/
-#gameArea {
-	position: absolute;
-	left: 50%;
-	top: 50%;
-	overflow: hidden; 
-	background-color: white;
-}
-
-#canvas {
-	width: 100%;
-	height: 100%;
-	/*border: solid black 1px;*/
 }

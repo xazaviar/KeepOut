@@ -25,6 +25,7 @@ $(document).ready(function() {
   	$('#canvas').bind('contextmenu', function(e){
         return false;
 	}); 
+
 });
 
 function getCookie(cname) {
