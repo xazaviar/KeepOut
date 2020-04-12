@@ -8,19 +8,45 @@
 	<link rel="icon" type="image/png" sizes="32x32" href="/public/images/favicon-32x32.png">
     <link rel="icon" type="image/png" sizes="16x16" href="/public/images/favicon-16x16.png">
     
-	<link rel="stylesheet" href="/public/css/main.css"/>
+	<link rel="stylesheet" href="/public/css/game.css"/>
 	<script src="/socket.io/socket.io.js"></script>
 	<script src="/public/js/jquery-3.1.1.min.js"></script>
+	<script src="https://s3.amazonaws.com/1698-bowling-league-prod/js/jquery.dataTables.js"></script>
 	<script src="/public/js/game/Input.js"></script>
 	<script src="/public/js/game/Ball.js"></script>
 	<script src="/public/js/game/Drawing.js"></script>
+	<script src="/public/js/game/Drawing_html.js"></script>
 	<script src="/public/js/game/Game.js"></script>
 	<script src='/public/js/client.js'></script>
 </head>
 
 <body>
-  	<div id="gameArea">
-    	<canvas id="canvas"></canvas>
+	<div class="overlay">
+		<div class="view"></div>
+	</div>
+	<div class="quickStats noselect"></div>
+	<div class="menuBar">
+		<div class="menuItem" id="stats">
+			<img class="noselect" src="/images/stats.png"/>
+		</div>
+		<div class="menuItem" id="leaderboard">
+			<img class="noselect" src="/images/leaderboard.png"/>
+		</div>
+		<div class="menuItem" id="quickStats">
+			<img class="noselect" src="/images/vision_off.png"/>
+		</div>
+		<div class="menuItem" id="target">
+			<img class="noselect" src="/images/target.png"/>
+		</div>
+		<div class="menuItem" id="history">
+			<img class="noselect" src="/images/history.png"/>
+		</div>
+		<div class="menuItem" id="settings">
+			<img class="noselect" src="/images/settings.png"/>
+		</div>
+	</div>
+  	<div class="title noselect">
+  		<p>KEEP OUT</p>
   	</div>
 </body>
 

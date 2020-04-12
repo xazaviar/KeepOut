@@ -42,7 +42,7 @@ Drawing.create = function(context) {
 }
 
 Drawing.prototype.newBall = function(sender, auth,  type){
-    this.ballList.push(new Ball(sender,auth, type, this.BOX_SIZE,this.BOX_SIZE));
+    this.ballList.push(new Ball(sender, auth, type, this.BOX_SIZE,this.BOX_SIZE));
 }
 
 Drawing.prototype.removeBall = function(auth){

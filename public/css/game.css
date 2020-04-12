@@ -1,0 +1,388 @@
+/*************************************************
+ * Background CSS
+ **************************************************/
+body {
+	background-color: #000;
+	overflow: hidden;
+}
+
+.title {
+	display: flex;
+	margin: auto; 
+	height: 100%;
+	color: white;
+	font-size: 40pt;
+	font-family: Arial;
+	z-index: 0;
+	font-weight: bold;
+}
+
+.title p {
+	text-align: center;
+	margin: auto;
+}
+
+.noselect {
+  -webkit-touch-callout: none; /* iOS Safari */
+    -webkit-user-select: none; /* Safari */
+     -khtml-user-select: none; /* Konqueror HTML */
+       -moz-user-select: none; /* Firefox */
+        -ms-user-select: none; /* Internet Explorer/Edge */
+            user-select: none; /* Non-prefixed version, currently
+                                  supported by Chrome and Opera */
+}
+
+/*************************************************
+ * Menuing CSS
+ **************************************************/
+.overlay {
+	position: absolute;
+	overflow-y: scroll;
+	top: 50px;
+	left: 0;
+	width: 100%;
+	height: 100%;
+	background-color: rgba(0,0,0,.6);
+	z-index: 2;
+}
+
+.menuBar {
+	position: fixed;
+	top: 0;
+	left: 0;
+	width: 100%;
+	height: 8px;
+	z-index: 100;
+	background-color: rgba(0,0,0,.6);
+	-webkit-transition:height 200ms ease-in;
+       -moz-transition:height 200ms ease-in;
+         -o-transition:height 200ms ease-in;
+    	    transition:height 200ms ease-in;
+}
+
+.menuBar:hover{
+	background-color: rgba(0,0,0,.6);
+	display: block;
+	height: 50px;
+}
+
+.menuItem {
+	display: none;
+	float: left;
+	cursor: pointer;
+}
+
+.menuItem img {
+	height: 100%;
+	display: block;
+	margin: auto;
+}
+
+.menuItem:hover {
+	background-color: rgba(140,140,140,.6);
+}
+
+.view {
+	color: white;
+	font-size: 25pt;
+	font-family: Arial;
+}
+
+/*::-webkit-scrollbar {
+    width: 0px;
+    background: transparent; /* make scrollbar transparent 
+}*/
+
+/*******************LEADERBOARD********************/
+.view table#leaderboard {
+	cursor: default;
+	margin: auto;
+	color: white;
+	text-align: center;
+	font-size: 20pt;
+	width: 50%;
+	min-width: 350px;
+}
+
+.view tr.user{
+	font-weight: bold;
+}
+
+
+/*******************QUICK STATS*******************/
+.quickStats {
+	display: none;
+	position: fixed;
+  	left: 20px;
+  	bottom: 0;
+  	color: white;
+  	width: 300px;
+  	height: 140px;
+	font-size: 25pt;
+	font-family: Arial;
+	font-weight: bold;
+}
+
+/*********************STATS**********************/
+.statsBox {
+	position: relative;
+	margin-right: auto;
+	margin-left: auto;
+	width: 50%;
+	min-width: 360px;
+	font-size: 20pt;
+}
+
+.statsBox p#name {
+	font-size: 25pt;
+	text-align: center;
+	margin-bottom: 0;
+	font-weight: bold;
+}
+
+.statsBox p#rank {
+	margin-top: 0;
+	text-align: center;
+	font-weight: bold;
+	margin-bottom: 10px;
+}
+
+.statsBox p#level {
+	text-align: center;
+	margin-bottom: 0;
+	margin-top: 0;
+}
+
+.statsBox div#levelBar {
+	margin-top: 0;
+	width: 80%; 
+	margin-left: auto;
+	margin-right: auto;
+	border-color: white;
+	border-width: 1px;
+	border-style: solid;
+	height: 25px;
+}
+
+.statsBox div#levelPercent {
+	background-color: white;
+	height: 100%;
+}
+
+.statsBox p#stats {
+	margin-left: 5%;
+}
+
+.statsBox div#balls {
+	z-index: 20;
+	position: absolute;
+	top: 255px;
+	text-align: center;
+	width: 80%;
+	margin-left: 10%;
+}
+
+.statsBox span{
+	margin-right: 10%;
+}
+
+/*********************TARGET**********************/
+.view .tableBox{
+	width: 80%;
+	min-width: 360px;
+	margin-left: auto;
+	margin-right: auto;
+	font-size: 15pt;
+}
+
+.view table#target {
+	cursor: default;
+	color: white;
+	text-align: center;
+	font-size: 15pt;
+	width: 100%;
+	min-width: 360px;
+	margin-left: auto;
+	margin-right: auto;
+}
+
+.view th#name {
+	width: 40%;
+	/*border: solid 1px white;*/
+}
+
+.view th#score {
+	width: 20%;
+	/*border: solid 1px white;*/
+}
+
+.view th#balls {
+	width: 10%;
+	/*border: solid 1px white;*/
+}
+
+.view th#actions {
+	max-width: 80px;
+	/*border: solid 1px white;*/
+}
+
+.view tag.inactive{
+	color: #AAA;
+}
+
+.view img{
+	width: 30px;
+	margin-right: 7px;
+	margin-left: 7px;
+}
+
+.view .dataTables_info#target_info {
+	display: none;
+}
+
+.view p#info {
+	margin-left: 10%;
+}
+
+.dataTables_filter {
+	float: right;
+}
+
+.dataTables_paginate {
+	margin-top: 10px;
+	float: right;
+	height: 30px;
+}
+
+p#searchText {
+	float: left;
+	margin: 5px 5px 0 0;
+	font-size: 15pt;
+}
+
+input[type=search] {
+	background-color: transparent;
+	color: white;
+	font-size: 15pt;
+	border: none;
+	border-bottom: solid white 3px;
+	margin-bottom: 5px;
+	width: 150px;
+}
+
+input[type=search]:focus {
+	outline: none;
+}
+
+a.paginate_button{
+	margin-right: 5px;
+	margin-left: 5px;
+	border: solid white 1px;
+	padding: 2px;
+	cursor: pointer;
+}
+
+a.paginate_button:focus {
+	outline: none;
+}
+
+a.current {
+	background-color: rgba(200,200,200,.5);
+}
+
+a.disabled {
+	color: #AAA;
+}
+
+
+/*********************HISTORY**********************/
+.view div#history {
+	min-height: 5px;
+}
+
+.view table#history {
+	cursor: default;
+	color: white;
+	text-align: center;
+	font-size: 15pt;
+	width: 80%;
+	min-width: 360px;
+	margin-left: auto;
+	margin-right: auto;
+	margin-top: 20px;
+}
+
+.view th#TYPE {
+	width: 10%;
+	border: solid 1px white;
+}
+
+.view th#SEND {
+	width: 40%;
+	border: solid 1px white;
+}
+
+.view th#REC {
+	width: 20%;
+	border: solid 1px white;
+}
+
+.view th#DUR {
+	width: 20%;
+	border: solid 1px white;
+}
+
+.view th#SWAT {
+	width: 10%;
+	border: solid 1px white;
+}
+
+
+/*************************************************
+ * Ball CSS
+ **************************************************/
+.ball {
+	z-index: 1;
+  	border-radius: 50%;
+}
+
+.ballClick {
+	cursor: pointer;
+	position: absolute;
+   /*	border-style: solid;
+	border-width: 1px;
+	border-color: black;*/
+}
+
+.NORMAL {
+  	background-color: black;
+  	color: black;
+}
+
+.TARGET {
+  	background-color: red;
+  	color: red;
+}
+
+.MONEY {
+  	background-color: #FFD700;
+  	color: #FFD700;
+}
+
+
+/*************************************************
+ * OLD
+ **************************************************/
+#gameArea {
+	position: absolute;
+	left: 50%;
+	top: 50%;
+	overflow: hidden; 
+	background-color: white;
+}
+
+#canvas {
+	width: 100%;
+	height: 100%;
+	/*border: solid black 1px;*/
+}

@@ -13,9 +13,9 @@ $(document).ready(function() {
 
     var socket = io();
   	var canvas = document.getElementById('canvas');
-  	Input.applyEventHandlers();
-  	Input.addMouseTracker(canvas);
-    Input.addTouchTracker(canvas);
+  	// Input.applyEventHandlers();
+  	// Input.addMouseTracker(canvas);
+    // Input.addTouchTracker(canvas);
 
   	var game = Game.create(socket, canvas);
 
@@ -25,6 +25,7 @@ $(document).ready(function() {
   	$('#canvas').bind('contextmenu', function(e){
         return false;
 	}); 
+
 });
 
 function getCookie(cname) {

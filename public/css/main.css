@@ -1,16 +1,54 @@
+/*************************************************
+ * Background CSS
+ **************************************************/
 body {
 	background-color: #000;
-}
-#gameArea {
-	position: absolute;
-	left: 50%;
-	top: 50%;
 	overflow: hidden;
-	background-color: white;
 }
 
-#canvas {
-	width: 100%;
+
+.buttonHolder {
+	display: flex;
+	margin: auto; 
 	height: 100%;
-	/*border: solid black 1px;*/
+	color: white;
+	z-index: 0;
+}
+
+.buttonHolder p {
+	font-weight: bold;
+	font-size: 40pt;
+	font-family: Arial;
+	text-align: center;
+	margin: auto;
+}
+
+button.signin {
+	text-align: center;
+	margin: auto;
+	width: 191px;
+	height: 46px;
+	background-image: url("../images/google-signin-button/2x/btn_google_signin_light_normal_web@2x.png");
+	background-size: cover;
+    border: none;
+    padding: 0px;
+    background-color: transparent;
+}
+
+button.signin:focus{
+	background-image: url("../images/google-signin-button/2x/btn_google_signin_light_focus_web@2x.png");
+}
+
+button.signin:active{
+	background-image: url("../images/google-signin-button/2x/btn_google_signin_light_pressed_web@2x.png");
+}
+
+.noselect {
+  -webkit-touch-callout: none; /* iOS Safari */
+    -webkit-user-select: none; /* Safari */
+     -khtml-user-select: none; /* Konqueror HTML */
+       -moz-user-select: none; /* Firefox */
+        -ms-user-select: none; /* Internet Explorer/Edge */
+            user-select: none; /* Non-prefixed version, currently
+                                  supported by Chrome and Opera */
 }
