@@ -14,6 +14,8 @@ function Game(socket, drawing){
 
     this.saveAuth           = false;
 
+    this.reconnectAttempts  = 10;
+
     var context = this;
 
     setInterval(function(){
@@ -29,7 +31,7 @@ Game.create = function(socket, canvasElement) {
     return new Game(socket, drawing);
 }
 
-Game.prototype.init = function(name, auth) {
+Game.prototype.init = function(email, password) {
     var context = this;
 
     this.socket.on('update', function(data) {
@@ -38,20 +40,41 @@ Game.prototype.init = function(name, auth) {
     this.socket.on('initial', function(data) {
         context.user  = data['self'];
         context.otherPlayers = data['players'];
-    });
-    this.socket.emit('player-connect', {
-    	name: name,
-    	auth: auth
+        context.reconnectAttempts = 10;
+        console.log("Connected to the game");
     });
     this.socket.on('failed-connect', function(data) {
-        // name = prompt("Could not find token on server. Please enter your name:");
-        if (name == null || name == "") {
-            name = "???";
+        //Must be bad credentials, send them back to sign in
+        
+        //Remove old creds
+        localStorage.removeItem("email");
+        localStorage.removeItem("password");
+
+        //Redirect
+        window.location.assign(window.location.origin);
+    });
+
+    this.socket.on('connect_error', function(err){
+        console.log("Attempting to reconnect [Attempts left: "+context.reconnectAttempts+"]");
+
+        if(context.reconnectAttempts==10) //Initial connection attempt. Let it hang.
+            context.socket.emit('player-connect', {
+                email: email,
+                password: password
+            });
+
+        context.reconnectAttempts--;
+
+        if(context.reconnectAttempts < -1){
+            location.reload();
         }
-        context.socket.emit('player-connect', {
-            name: name,
-            auth: ""
-        });
+    });
+
+
+    //Connect to the server
+    this.socket.emit('player-connect', {
+        email: email,
+        password: password
     });
 }
 

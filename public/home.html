@@ -10,11 +10,46 @@
 	<link rel="stylesheet" href="/public/css/main.css"/>
 
 	<script src="/public/js/jquery-3.1.1.min.js"></script>
-	<script src="/public/js/game/Login.js"></script>
+	<script src="/public/js/website/server_calls.js"></script>
+	<script src="/public/js/game/Ball.js"></script>
+	<script src="/public/js/website/Login.js"></script>
 </head>
 <body>
-	<div class="buttonHolder">
-		<p>KEEP OUT HOME</p>
+	<div class="homeScreen">
+		<div class="titleScreen">
+			<p id="welcome">Welcome to</p>
+			<p id="title">KEEP OUT</p>
+			<p id="description">A game about keeping others out your space</p><br><br>
+			<button id="signUp">SIGN UP</button><br><br>
+			<button id="signIn">SIGN IN</button>
+		</div>
+
+		<div class="sidePanel signUp hide">
+			<p class="noselect backArrow" id="backArrow1">⇦</p><br>
+			<p class="noselect" style="font-size: 20pt">Create Account</p><br>
+			<form id="signUp">
+				<table>
+				<tr><td>Email:</td><td><input name="email" type="text" required pattern="[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,3}" /></td></tr>
+				<tr><td>Password: </td><td><input name="password" type="password" required minlength="6"/></td></tr>
+				<tr><td>Verify: </td><td><input id="password_confirmation" name="pass_verify" type="password" required minlength="6"/></td></tr>
+				<tr><td>Name: </td><td><input name="name" type="text" required maxlength="12" minlength="3"/></td></tr>
+				</table><br>
+				<button id="submitSignUp">Play</button>
+			</form>
+		</div>
+
+		<div class="sidePanel signIn hide">
+			<p class="noselect backArrow" id="backArrow2">⇦</p><br>
+			<p class="noselect" style="font-size: 20pt">Sign In</p><br>
+			<form id="signIn">
+				<table>
+				<tr><td>Email:</td><td><input name="email" type="text" required pattern="[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,3}"/></td></tr>
+				<tr><td>Password: </td><td><input name="password" type="password" required minlength="6"/></td></tr>
+				</table><br>
+				<button id="submitSignIn">Play</button>
+			</form>
+		</div>
 	</div>
+
 </body>
 </html>

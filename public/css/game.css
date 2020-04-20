@@ -38,6 +38,7 @@ body {
 .overlay {
 	position: absolute;
 	overflow-y: scroll;
+	display: none;
 	top: 50px;
 	left: 0;
 	width: 100%;

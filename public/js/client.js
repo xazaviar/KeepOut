@@ -1,27 +1,20 @@
 $(document).ready(function() {
-    //Check for previous sign in
-    var auth = getCookie("auth");
-    var name = "???";
+    //Check for login credentials
+    if(typeof(localStorage.email) == "undefined" || typeof(localStorage.password) == "undefined"){
+        console.log(window.location);
+        window.location.assign(window.location.origin);         
+    }
+    else{
+        var socket = io();
+      	var canvas = document.getElementById('canvas');
 
-    if(auth == ""){
-        // New sign in
-        // name = prompt("Please enter your name:");
-        // if (name == null || name == "") {
-        //     name = "???";
-        // }
+      	var game = Game.create(socket, canvas);
+
+      	game.init(localStorage.email, localStorage.password);
+        game.animate();
     }
 
-    var socket = io();
-  	var canvas = document.getElementById('canvas');
-  	// Input.applyEventHandlers();
-  	// Input.addMouseTracker(canvas);
-    // Input.addTouchTracker(canvas);
-
-  	var game = Game.create(socket, canvas);
-
-  	game.init(name, auth);
-    game.animate();
-
+    //Is this needed?
   	$('#canvas').bind('contextmenu', function(e){
         return false;
 	}); 

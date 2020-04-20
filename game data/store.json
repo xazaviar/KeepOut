@@ -1,0 +1,51 @@
+[{
+	"id": 0,
+	"name": "Target Ball",
+	"type": "ball",
+	"desc": "Use this ball in the Targeting Tab to send a surprise to an unspecting target. Or even a suspecting target; your ball your call..",
+	"cost": 100,
+	"available": false
+},
+{
+	"id": 1,
+	"name": "Timed Shield",
+	"type": "shield",
+	"desc": "This shield will give you immunity to balls for +(SHIELD_TIME/60).toFixed(0)+ minutes. Great item when you need to step away for just a bit.",
+	"cost": 2000,
+	"available": false
+},
+{
+	"id": 2,
+	"name": "Hits Shield",
+	"type": "shield",
+	"desc": "Don't want to get slammed? Feel the heat coming soon and want to stop it? This shield will protect you from +SHIELD_HITS+ balls. That'll show them.",
+	"cost": 800,
+	"available": false
+},
+{
+	"id": 3,
+	"name": "x2 Boost",
+	"type": "boost",
+	"desc": "Getting behind? Or want to increase the gap? Buy a boost! Guaranteed to increase your score for +(BOOST_TIME/60).toFixed(0)+ minutes.",
+	"cost": 650,
+	"amt": 2,
+	"available": false
+},
+{
+	"id": 4,
+	"name": "x3 Boost",
+	"type": "boost",
+	"desc": "Still behind? Or want to establish dominance? Buy a better boost! Guaranteed to increase your score for +(BOOST_TIME/60).toFixed(0)+ minutes.",
+	"cost": 900,
+	"amt": 3,
+	"available": false
+},
+{
+	"id": 5,
+	"name": "x4 Boost",
+	"type": "boost",
+	"desc": "Did you walk away for too long? Or want to make them feel weak? Buy the best boost! Guaranteed to increase your score for +(BOOST_TIME/60).toFixed(0)+ minutes or your money back. (Refund window expires 2 seconds after purchase).",
+	"cost": 1100,
+	"amt": 4,
+	"available": false
+}]

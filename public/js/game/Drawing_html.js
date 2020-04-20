@@ -303,7 +303,6 @@ Drawing_html.prototype.drawHistory = function(user){
                                                 "</tr>");
         }
     }
-
 }
 
 
