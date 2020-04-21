@@ -8,11 +8,8 @@ function Game(socket, drawing){
     this.prevLeft			= false;
 
     this.clickedBall		= false;
-    this.firstData 			= true;
 
     this.recentBalls        = [];
-
-    this.saveAuth           = false;
 
     this.reconnectAttempts  = 10;
 
@@ -78,15 +75,6 @@ Game.prototype.init = function(email, password) {
     });
 }
 
-Game.prototype.animate = function() {
-    this.animationFrameId = window.requestAnimationFrame(
-        this.bind(this, this.update));
-}
-
-Game.prototype.stopAnimation = function() {
-    window.cancelAnimationFrame(this.animationFrameId);
-}
-
 Game.prototype.receiveGameState = function(state) {
     var updates = state['updates'];
     
@@ -106,9 +94,8 @@ Game.prototype.receiveGameState = function(state) {
         }
         else if(updates[u].type == "playerReconnect"){
             for(var o in this.otherPlayers){
-                if(updates[u].oldID == this.otherPlayers[o].id){
+                if(updates[u].id == this.otherPlayers[o].id){
                     this.otherPlayers[o].isActive = true;
-                    this.otherPlayers[o].id = updates[u].newID;
                     break;
                 }  
             }
@@ -165,15 +152,6 @@ Game.prototype.receiveGameState = function(state) {
         if(!this.drawing.ballList[o].keep) 
             this.drawing.removeBall(this.drawing.ballList[o].auth);
     }
-    
-
-    //Create cookie
-	if(this.firstData && this.saveAuth){
-		var now = new Date();
-		now.setMonth(now.getMonth() + 1);
-		document.cookie = "auth="+this.user.authToken+"; expires="+now;
-		this.firstData = false;
-	}
 }
 
 Game.prototype.update = function() {
@@ -265,7 +243,7 @@ Game.prototype.constUpdate = function(){
         if(!activeShield && this.user.balls.length-this.user.hasMoneyBall > 0) this.user.balltime++;
         // if(activeShield) this.user.score += this.user.activeBoost.amt;
         // else 
-        this.user.score += this.user.activeBoost.amt - (this.user.balls.length-this.user.hasMoneyBall);
+        this.user.score += this.user.activeBoost.amt - Math.max(this.user.balls.length-this.user.hasMoneyBall,0);
 
         //Score records
         if(this.user.score > this.user.highScore) this.user.highScore = 0+this.user.score;
@@ -282,11 +260,20 @@ Game.prototype.constUpdate = function(){
 
             // if(player.shield) player.score += player.activeBoost.amt;
             // else 
-            player.score += player.activeBoost.amt - player.ballCount;
+            player.score += player.activeBoost.amt - Math.max(player.ballCount,0);
         }
 
         this.recentBalls = [];
     }
+}
+
+Game.prototype.animate = function() {
+    this.animationFrameId = window.requestAnimationFrame(
+        this.bind(this, this.update));
+}
+
+Game.prototype.stopAnimation = function() {
+    window.cancelAnimationFrame(this.animationFrameId);
 }
 
 //**************************************************************************

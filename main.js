@@ -252,9 +252,9 @@ function exitHandler(options, exitCode){
     if (options.cleanup){
         console.log("CLEAN UP?");
     }
-    if (options.error){
-        logger.error("ERROR OCCURED");
-    }
+    // if (options.error){
+    //     logger.error(options.error);
+    // }
     // if (exitCode || exitCode === 0) console.log(exitCode);
     if (options.exit){
         logger.info("SERVER PREPARING TO SHUT DOWN");
