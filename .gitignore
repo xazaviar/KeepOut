@@ -22,3 +22,8 @@ $RECYCLE.BIN/
 # Operating System Files
 # =========================
 node_modules/*
+
+#Log and data files
+.env
+logs/*
+game data/player data/*
