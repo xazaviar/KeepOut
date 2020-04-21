@@ -1,4 +1,5 @@
 var table = null, first = true;
+var recentList = null;
 
 function Drawing_html() {
     this.loadImages();
@@ -33,8 +34,11 @@ function Drawing_html() {
     //Tick
     this.ticks = 0;
 
-    //Menu Clicking
+    //Target View Refresh Timer
     var context = this;
+    setInterval(function(){if(table!=null) updateTargetTable(context)},500)
+
+    //Menu Clicking
     $(".menuItem").on("click", function(){
         if(context.curView != this.id) 
             //Check for quickStats
@@ -119,11 +123,7 @@ Drawing_html.prototype.drawBalls = function(){
 //Menus
 //**************************************************************************
 Drawing_html.prototype.drawAlternateView = function(user, list){
-    if(first){
-        first = false;
-        var context = this;
-        setInterval(function(){if(table!=null) updateTargetTable(context,list)},500);
-    }
+    recentList = list;
 
     //display overlay
     $(".overlay").toggle(this.curView!=null)
@@ -162,9 +162,9 @@ Drawing_html.prototype.drawLeaderboard = function(user, list){
     for(var r = 0; r < Math.min(10,rankings.length); r++){
         if(rankings[r].name == user.name && rankings[r].score == user.score){
             inserted = true;
-            $(".view table#leaderboard tbody").append("<tr class='user'><td>"+rankings[r].rank+"</td><td>"+rankings[r].name+"</td><td>"+rankings[r].score+"</td></tr>");
+            $(".view table#leaderboard tbody").append("<tr class='user'><td>"+rankings[r].rank+"</td><td>"+rankings[r].name+"</td><td>"+formatScore(rankings[r].score)+"</td></tr>");
         } 
-        else $(".view table#leaderboard tbody").append("<tr><td>"+rankings[r].rank+"</td><td>"+rankings[r].name+"</td><td>"+rankings[r].score+"</td></tr>");
+        else $(".view table#leaderboard tbody").append("<tr><td>"+rankings[r].rank+"</td><td>"+rankings[r].name+"</td><td>"+formatScore(rankings[r].score)+"</td></tr>");
     }
 
     //User is either bottom of list or not top ten
@@ -176,7 +176,7 @@ Drawing_html.prototype.drawLeaderboard = function(user, list){
         if(extra) $(".view table#leaderboard tbody").append("<tr><td></td><td>...</td><td></td></tr>");
     
         //User
-        $(".view table#leaderboard tbody").append("<tr class='user'><td>"+userRank+"</td><td>"+user.name+"</td><td>"+user.score+"</td></tr>");
+        $(".view table#leaderboard tbody").append("<tr class='user'><td>"+userRank+"</td><td>"+user.name+"</td><td>"+formatScore(user.score)+"</td></tr>");
     }
 }
 
@@ -190,7 +190,7 @@ Drawing_html.prototype.drawStats = function(user, list){
     $(".view").append("<div class='statsBox'></div>");
 
     $(".view .statsBox").append("<p id='name'>"+user.name+"</p>");
-    $(".view .statsBox").append("<p id='rank'>"+userRank+"/"+(list.length+1)+"<br>SCORE: "+user.score+"</p>");
+    $(".view .statsBox").append("<p id='rank'>"+userRank+"/"+(list.length+1)+"<br>SCORE: "+formatScore(user.score)+"</p>");
 
     $(".view .statsBox").append("<p id='level'>"+user.level+"</p>");
 
@@ -208,8 +208,8 @@ Drawing_html.prototype.drawStats = function(user, list){
             "Balltime [S]: "+convertSeconds(user.balltimeS)+"</br>"+
             "Total Swats: "+user.swatCount+" ("+(user.ballCount==0?0:user.swatCount/user.ballCount*100).toFixed(1)+"%)"+"</br>"+
             "Balls Sent: "+user.targetBallsSent+"</br>"+
-            "High Score: "+user.highScore+"</br>"+
-            "Low Score: "+user.lowScore+"</br>"+
+            "High Score: "+formatScore(user.highScore)+"</br>"+
+            "Low Score: "+formatScore(user.lowScore)+"</br>"+
             user.money+this.moneySign+" / "+user.moneyTotal+this.moneySign+"</br>"+
         "</p>");
 }
@@ -235,7 +235,7 @@ Drawing_html.prototype.drawTarget = function(user, list){
         for(var i = 0; i < list.length; i++){
             var temp = [], d = 0;
             temp[d] = "<tag "+(!list[i].isActive?"class='inactive'":"")+">"+list[i].name+"</tag>"; d++;
-            temp[d] = list[i].score; d++;
+            temp[d] = formatScore(list[i].score); d++;
             temp[d] = list[i].ballCount; d++;
             temp[d] = "<img class='targeting' id='"+list[i].id+"' src='"+this.targetImg.src+"'/><img class='send' id='"+list[i].id+"' src='"+this.sendImg.src+"'/>"; d++;
             result.push(temp);  
@@ -310,7 +310,7 @@ Drawing_html.prototype.drawSettings = function(user){}
 
 Drawing_html.prototype.updateQuickStats = function(user,list){
     var userRank = rankPlayers(user,list)[1];
-    var newText = "RANK: "+userRank+"<br>SCORE: "+user.score+"<br>"+user.money+this.moneySign;
+    var newText = "RANK: "+userRank+"<br>SCORE: "+formatScore(user.score)+"<br>"+user.money+this.moneySign;
     if($(".quickStats").html()!=newText)
         $(".quickStats").html(newText);
 }
@@ -490,12 +490,26 @@ function rankPlayers(user,list){
     return [ranking,userRank];
 }
 
+function formatScore(score){
+    var text = "";
+
+    if(score >99999 || score < -99999){
+        text = ""+(score/1000).toFixed(2)+"K";
+    }
+    else{
+        text = ""+(score).toFixed(0);
+    }
+
+    return text;
+}
+
 function updateTargetTable(context,list){
+    var list = recentList;
     var result = [];
     for(var i = 0; i < list.length; i++){
         var temp = [], d = 0;
         temp[d] = "<tag "+(!list[i].isActive?"class='inactive'":"")+">"+list[i].name+"</tag>"; d++;
-        temp[d] = list[i].score; d++;
+        temp[d] = formatScore(list[i].score); d++;
         temp[d] = list[i].ballCount; d++;
         temp[d] = "<img class='targeting' id='"+list[i].id+"' src='"+context.targetImg.src+"'/><img class='send' id='"+list[i].id+"' src='"+context.sendImg.src+"'/>"; d++; 
         try{ 
@@ -508,8 +522,6 @@ function updateTargetTable(context,list){
     // table.draw(); //Not needed, but will auto sort rows
 
     $(".targeting").on("click", function(){
-        // console.log("TARGETTING: "+this.id);
-        // console.log(context.permTarget,"|",this.id,"|",context.permTarget==this.id)
         if(context.permTarget==this.id) context.permTarget = null;
         else context.permTarget = this.id;
 
@@ -524,7 +536,6 @@ function updateTargetTable(context,list){
     });
 
     $(".send").on("click", function(){
-        // console.log("SENDING: "+this.id);
         context.ballTarget = this.id;
     });
 }

@@ -1,7 +1,6 @@
 $(document).ready(function() {
     //Check for login credentials
     if(typeof(localStorage.email) == "undefined" || typeof(localStorage.password) == "undefined"){
-        console.log(window.location);
         window.location.assign(window.location.origin);         
     }
     else{

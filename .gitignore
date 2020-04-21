@@ -24,6 +24,6 @@ $RECYCLE.BIN/
 node_modules/*
 
 #Log and data files
-.env
+#.env
 logs/*
 game_data/player_data/*

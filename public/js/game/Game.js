@@ -13,8 +13,9 @@ function Game(socket, drawing){
 
     this.reconnectAttempts  = 10;
 
-    var context = this;
+    this.gameRules = null;
 
+    var context = this;
     setInterval(function(){
         context.drawing.ticks++;
         context.constUpdate();
@@ -37,6 +38,7 @@ Game.prototype.init = function(email, password) {
     this.socket.on('initial', function(data) {
         context.user  = data['self'];
         context.otherPlayers = data['players'];
+        context.gameRules = data['rules'];
         context.reconnectAttempts = 10;
         console.log("Connected to the game");
     });
@@ -59,6 +61,7 @@ Game.prototype.init = function(email, password) {
                 email: email,
                 password: password
             });
+
 
         context.reconnectAttempts--;
 
@@ -187,12 +190,6 @@ Game.prototype.draw = function() {
     if(this.user)
         this.drawing.resize(this.user.menu);
 
-	// Clear the canvas
-    // this.drawing.clear();
-
-    //Set scale
-    // this.drawing.setScale($("#gameArea").width());
-
     //Draw background
     this.drawing.drawBackground();
 
@@ -227,23 +224,14 @@ Game.prototype.constUpdate = function(){
 
     if(this.otherPlayers.length > 0){
         //Update Self
-        // if(this.user.activeBoost.dur > 0) this.user.activeBoost.dur--;
-        // else this.user.activeBoost = {amt:1,dur:-1};
-
-        // if(this.user.shield!=null)
-        //     if(this.user.shield.type == "time" && this.user.shield.dur > 0) this.user.shield.dur--;
-        //     else if(this.user.shield.type == "time") this.user.shield = null
-        //     else if(this.user.shield.type == "hits" && this.user.shield.hits <= 0) this.user.shield = null;
-
-        var activeShield = (this.user.shield != null && (this.user.shield.type=="time" || (this.user.shield.type=="hits" && this.user.shield.hits > 0)))
+        if(this.user.activeBoost.dur > 0) this.user.activeBoost.dur--;
+        else this.user.activeBoost = {amt:this.gameRules.BASE_POINT_GAIN,dur:-1};
 
         //Update Counters
         this.user.lifetime++;
-        if(!activeShield) this.user.balltimeS += this.user.balls.length-this.user.hasMoneyBall;
-        if(!activeShield && this.user.balls.length-this.user.hasMoneyBall > 0) this.user.balltime++;
-        // if(activeShield) this.user.score += this.user.activeBoost.amt;
-        // else 
-        this.user.score += this.user.activeBoost.amt - Math.max(this.user.balls.length-this.user.hasMoneyBall,0);
+        this.user.balltimeS += this.user.balls.length-this.user.hasMoneyBall;
+        if(this.user.balls.length-this.user.hasMoneyBall > 0) this.user.balltime++;
+        this.user.score += this.user.activeBoost.amt + (this.user.balls.length-this.user.hasMoneyBall)*this.gameRules.BALL_POINT_COST;
 
         //Score records
         if(this.user.score > this.user.highScore) this.user.highScore = 0+this.user.score;
@@ -251,16 +239,12 @@ Game.prototype.constUpdate = function(){
 
         if(this.user.isActive) this.user.activetime++;
 
-        if(this.user.balls.length-this.user.hasMoneyBall == 0) this.user.experience+=1; //Need to pull from file
-
+        if(this.user.balls.length-this.user.hasMoneyBall == 0) this.user.experience+=this.gameRules.NO_BALL_EXP; //Need to pull from file
 
         //Update others
         for(var o in this.otherPlayers){
             var player = this.otherPlayers[o];
-
-            // if(player.shield) player.score += player.activeBoost.amt;
-            // else 
-            player.score += player.activeBoost.amt - Math.max(player.ballCount,0);
+            player.score += player.activeBoost.amt + player.ballCount*this.gameRules.BALL_POINT_COST;
         }
 
         this.recentBalls = [];

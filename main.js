@@ -228,7 +228,7 @@ setInterval(() => {
  */
 setInterval(() => {
     game.saveData();
-}, 1000*60*5);
+}, 1000*60*10);
 
 /**
  * Start the server.
@@ -261,7 +261,7 @@ function exitHandler(options, exitCode){
         game.saveData(function(){
             logger.info("SERVER SHUTTING DOWN");
             process.exit();
-        });
+        },true);
     } 
 }
 

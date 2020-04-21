@@ -184,7 +184,7 @@ body {
 }
 
 .statsBox span{
-	margin-right: 10%;
+	margin-right: 6%;
 }
 
 /*********************TARGET**********************/
@@ -208,7 +208,7 @@ body {
 }
 
 .view th#name {
-	width: 40%;
+	width: 35%;
 	/*border: solid 1px white;*/
 }
 
@@ -223,7 +223,7 @@ body {
 }
 
 .view th#actions {
-	max-width: 80px;
+	max-width: 90px;
 	/*border: solid 1px white;*/
 }
 
@@ -242,11 +242,12 @@ body {
 }
 
 .view p#info {
-	margin-left: 10%;
+	margin-left: 5%;
 }
 
 .dataTables_filter {
 	float: right;
+	margin-right: 20px;
 }
 
 .dataTables_paginate {
