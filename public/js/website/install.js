@@ -1,7 +1,12 @@
 'use strict';
 let deferredInstallPrompt = null;
-const installButton = $("button#install");
-installButton.on('click', installPWA);
+var installButton;
+
+$(document).ready(function() {
+	installButton = $("button#install");
+	// installButton.on('click', installPWA);
+	$("button#install").on("click", installPWA);
+});
 
 window.addEventListener('load', () => {
 	if (navigator.standalone) {
