@@ -381,34 +381,34 @@ Drawing_html.prototype.loadImages = function(){
     this.quickStats_offImg.src  = "/images/vision_off.png";
     this.targetImg              = new Image;
     this.targetImg.src          = "/images/target.png";
-    this.storeImg               = new Image;
-    this.storeImg.src           = "/images/store.png";
+    // this.storeImg               = new Image;
+    // this.storeImg.src           = "/images/store.png";
     this.historyImg             = new Image;
     this.historyImg.src         = "/images/history.png";
 
     //Menuing
-    this.arrowUpImg             = new Image;
-    this.arrowUpImg.src         = "/images/arrow_up.png";
-    this.arrowDownImg           = new Image;
-    this.arrowDownImg.src       = "/images/arrow_down.png";
-    this.shieldImg              = new Image;
-    this.shieldImg.src          = "/images/shield.png";
+    // this.arrowUpImg             = new Image;
+    // this.arrowUpImg.src         = "/images/arrow_up.png";
+    // this.arrowDownImg           = new Image;
+    // this.arrowDownImg.src       = "/images/arrow_down.png";
+    // this.shieldImg              = new Image;
+    // this.shieldImg.src          = "/images/shield.png";
     this.sendImg                = new Image;
     this.sendImg.src            = "/images/send.png";
     this.clockImg               = new Image;
     this.clockImg.src           = "/images/clock.png";
 
     //Store Items
-    this.shieldTimeImg          = new Image;
-    this.shieldTimeImg.src      = "/images/shield_time.png";
-    this.shieldHitImg           = new Image;
-    this.shieldHitImg.src       = "/images/shield_hits.png";
-    this.x2Img                  = new Image;
-    this.x2Img.src              = "/images/x2.png";
-    this.x3Img                  = new Image;
-    this.x3Img.src              = "/images/x3.png";
-    this.x4Img                  = new Image;
-    this.x4Img.src              = "/images/x4.png";
+    // this.shieldTimeImg          = new Image;
+    // this.shieldTimeImg.src      = "/images/shield_time.png";
+    // this.shieldHitImg           = new Image;
+    // this.shieldHitImg.src       = "/images/shield_hits.png";
+    // this.x2Img                  = new Image;
+    // this.x2Img.src              = "/images/x2.png";
+    // this.x3Img                  = new Image;
+    // this.x3Img.src              = "/images/x3.png";
+    // this.x4Img                  = new Image;
+    // this.x4Img.src              = "/images/x4.png";
 }
 
 function convertSeconds(sec){

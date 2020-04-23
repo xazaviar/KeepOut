@@ -6,13 +6,82 @@
 	<link rel="icon" type="image/png" href="/public/images/favicon.png">
 	<link rel="icon" type="image/png" sizes="32x32" href="/public/images/favicon-32x32.png">
     <link rel="icon" type="image/png" sizes="16x16" href="/public/images/favicon-16x16.png">
+    <link rel="icon" type="image/png" sizes="128x128" href="/public/images/favicon-128x128.png">
+    <link rel="icon" type="image/png" sizes="144x144" href="/public/images/favicon-144x144.png">
+    <link rel="icon" type="image/png" sizes="152x152" href="/public/images/favicon-152x152.png">
+    <link rel="icon" type="image/png" sizes="192x192" href="/public/images/favicon-192x192.png">
+    <link rel="icon" type="image/png" sizes="256x256" href="/public/images/favicon-256x256.png">
+    <link rel="icon" type="image/png" sizes="512x512" href="/public/images/favicon-512x512.png">
     
-	<link rel="stylesheet" href="/public/css/main.css"/>
+	<!-- PWA SETUP -->
+	<link rel="manifest" href="/manifest.json">
+	<meta name="apple-mobile-web-app-capable" content="yes">
+	<meta name="apple-mobile-web-app-status-bar-style" content="black">
+	<meta name="apple-mobile-web-app-title" content="KeepOut PWA">
+	<link rel="apple-touch-icon" href="/images/icons/favicon-152x152.png">
+	<meta name="description" content="The Keep Out Game">
+	<meta name="theme-color" content="#FF00FF" />
+
 	<script src="/public/js/jquery-3.1.1.min.js"></script>
-	<script src="/public/js/game/Login.js"></script>
+	<script src="/public/js/game/Ball.js"></script>
+	<script src="/public/js/website/nice_background.js"></script>
+
+	<style>
+		body {
+			background-color: #000;
+			overflow: hidden;
+			color: white;
+			font-family: Arial;
+		}
+
+		.homeScreen {
+			display: flex;
+			margin: auto; 
+			height: 100%;
+			color: white;
+			font-size: 40pt;
+			font-family: Arial;
+			z-index: 0;
+			font-weight: bold;
+		}
+
+		.homeScreen p {
+			text-align: center;
+			margin: auto;
+		}
+
+		/*************************************************
+		 * Ball CSS
+		 **************************************************/
+		.ball {
+			z-index: -1;
+		  	border-radius: 50%;
+		}
+
+		.ballClick {
+			position: absolute;
+			z-index: -1;
+		}
+
+		.NORMAL {
+		  	background-color: black;
+		  	color: black;
+		}
+
+		.TARGET {
+		  	background-color: red;
+		  	color: red;
+		}
+
+		.MONEY {
+		  	background-color: #FFD700;
+		  	color: #FFD700;
+		}
+
+	</style>
 </head>
 <body>
-	<div class="buttonHolder">
+	<div class="homeScreen">
 		<p>404</p>
 	</div>
 </body>
