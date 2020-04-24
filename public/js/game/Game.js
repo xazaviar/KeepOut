@@ -13,13 +13,30 @@ function Game(socket, drawing){
 
     this.reconnectAttempts  = 10;
 
+    this.lastInput = Date.now();
+
     this.gameRules = null;
+    this.gotLvlup = false;
+    this.prevLevelup = false;
 
     var context = this;
     setInterval(function(){
         context.drawing.ticks++;
+
+        if(Date.now() - context.lastInput > 10*60*1000){
+            console.log("FORCE RESET");
+            location.reload();
+        }
+
         context.constUpdate();
     },1000);
+
+    $("body").on("click", function(){
+        context.lastInput = Date.now();
+    });
+    $("body").on("touch", function(){
+        context.lastInput = Date.now();
+    });
 }
 
 Game.create = function(socket, canvasElement) {
@@ -64,10 +81,6 @@ Game.prototype.init = function(email, password) {
 
 
         context.reconnectAttempts--;
-
-        if(context.reconnectAttempts < -1){
-            location.reload();
-        }
     });
 
 
@@ -155,6 +168,14 @@ Game.prototype.receiveGameState = function(state) {
         if(!this.drawing.ballList[o].keep) 
             this.drawing.removeBall(this.drawing.ballList[o].auth);
     }
+
+    //Check for levelup
+    if(this.user.showLvlUp && !this.prevLevelup){
+        this.gotLvlup = true;
+        this.prevLevelup = true;
+    }else if(!this.user.showLvlUp && this.prevLevelup){
+        this.prevLevelup = false;
+    }
 }
 
 Game.prototype.update = function() {
@@ -172,7 +193,8 @@ Game.prototype.update = function() {
             auth:       this.clickedBall,
             sendBall:   this.drawing.ballTarget,
             permTarget: this.drawing.permTarget,
-            storePurchase: this.drawing.storePurchase
+            storePurchase: this.drawing.storePurchase,
+            gotLvlup: this.gotLvlup 
         }
     });
     //Reset variables
@@ -180,8 +202,12 @@ Game.prototype.update = function() {
     this.drawing.ballTarget = null;
     this.drawing.storePurchase = null;
 
+    if(this.drawing.madeInput){
+        this.drawing.madeInput = false;
+        this.lastInput = Date.now();
+    }
+
     this.draw();
-    // this.checkInput();
     this.animate();
 }
 
@@ -195,6 +221,13 @@ Game.prototype.draw = function() {
 
     //Draw balls
     this.drawing.drawBalls();
+
+    //Draw level up
+    // console.log("SHOW LEVEL UP: ",this.gotLvlup && Date.now()-this.lastLevelup<10)
+    if(this.gotLvlup && !this.drawing.showingLevelup){
+        this.drawing.drawLevelUp();
+        this.gotLvlup = false;
+    }else if(this.gotLvlup) this.gotLvlup = false;
 
     //Draw Alternate Screens
     if(this.user)
@@ -248,6 +281,11 @@ Game.prototype.constUpdate = function(){
         }
 
         this.recentBalls = [];
+    }
+
+    //Check for disconnected
+    if(this.reconnectAttempts<0){
+        location.reload(); //Forced reconnect
     }
 }
 

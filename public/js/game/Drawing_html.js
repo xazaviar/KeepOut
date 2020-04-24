@@ -13,6 +13,7 @@ function Drawing_html() {
 
     this.ballList = [];
     this.ballsClicked = 0;
+    this.menu = null;
 
     //Flags
     this.curView = null;
@@ -22,6 +23,10 @@ function Drawing_html() {
     this.targetSort = "SCORE";
     this.targetViewPage = 0;
     this.targetViewPageCount = 10;
+    this.madeInput = false;
+    this.prevMenu = [];
+    this.staticBGcolor = (localStorage.staticBGcolor=="null"?null:localStorage.staticBGcolor);
+    this.showingLevelup = false;
 
     //Ball Target
     this.ballTarget = null;
@@ -50,13 +55,12 @@ function Drawing_html() {
             } 
             else context.curView = this.id;
         else context.curView = null;
-
+        context.madeInput = true;
     });
 
 
     //Mobile Swipe Commands [PHONE MIGHT NOT ACCEPT SWIPE EVENTS]
     $(".overlay").on("swipe", function(){
-        // console.log("HIT");
         $(".title p").text("DOWN");
     });
 }
@@ -71,7 +75,7 @@ Drawing_html.create = function() {
 Drawing_html.prototype.newBall = function(sender, auth,  type, context){
     var ball = new Ball(sender, auth, type, this.WIDTH, this.HEIGHT);
     this.ballList.push(ball);
-    $("body").append('<div class="ballClick" id="'+ball.auth+'"><div class="ball '+ball.type+'"></div></div>');
+    $("body").append('<div class="ballClick noselect" id="'+ball.auth+'"><div class="ball noselect '+ball.type+'"></div></div>');
     $('.ballClick#'+ball.auth).css({"left":ball.x,"top":ball.y});
 
     //Clicking a ball
@@ -79,12 +83,14 @@ Drawing_html.prototype.newBall = function(sender, auth,  type, context){
         context.clickedBall = this.id;
         context.recentBalls.push(""+context.clickedBall);
         context.drawing.removeBall(context.clickedBall); //Immediate remove
+        context.madeInput = true;
     });
 
     $('.ballClick#'+ball.auth).on("tap", function(){
         context.clickedBall = this.id;
         context.recentBalls.push(""+context.clickedBall);
         context.drawing.removeBall(context.clickedBall); //Immediate remove
+        context.madeInput = true;
     });
 }
 
@@ -103,8 +109,11 @@ Drawing_html.prototype.removeBall = function(auth){
 //Drawing
 //**************************************************************************
 Drawing_html.prototype.drawBackground = function(){
-    this.transitionColor();
-    $("body").css("background-color","rgb("+this.backColor.r+","+this.backColor.g+","+this.backColor.b+")");
+    if(this.staticBGcolor!=null && this.prevMenu.length>0 && this.prevMenu[4].extras.backgroundColor) $("body").css("background-color","#"+this.staticBGcolor);
+    else{
+        this.transitionColor();
+        $("body").css("background-color","rgb("+this.backColor.r+","+this.backColor.g+","+this.backColor.b+")");
+    } 
 }
 
 Drawing_html.prototype.drawBalls = function(){
@@ -119,6 +128,20 @@ Drawing_html.prototype.drawBalls = function(){
     }
 }
 
+Drawing_html.prototype.drawLevelUp = function(){
+    this.showingLevelup = true;
+    var context = this;
+    $(".title#main").toggle(false);
+    $(".levelUp").toggle(true);
+    $(".levelUp").animate({opacity:1.0},2000,function(){
+        $(".levelUp").delay(1000).animate({opacity:0.0},2000,function(){
+            $(".title#main").toggle(true);
+            $(".levelUp").toggle(false);
+            context.showingLevelup = false;
+        });
+    });
+}
+
 //**************************************************************************
 //Menus
 //**************************************************************************
@@ -126,8 +149,10 @@ Drawing_html.prototype.drawAlternateView = function(user, list){
     recentList = list;
 
     //display overlay
-    $(".overlay").toggle(this.curView!=null)
-    $(".title").toggle(this.curView==null)
+    if(!this.showingLevelup){
+        $(".overlay").toggle(this.curView!=null);
+        $(".title#main").toggle(this.curView==null);
+    }
     if(this.curView!=null){
         $('.menuBar').css("height","50px");
         $(".quickStats").toggle(false);
@@ -144,6 +169,8 @@ Drawing_html.prototype.drawAlternateView = function(user, list){
     else if(this.curView == "target") this.drawTarget(user, list);
     else if(this.curView == "history") this.drawHistory(user);
     else if(this.curView == "settings") this.drawSettings(user);
+
+    this.prevMenu = user.menu;
 }
 
 Drawing_html.prototype.drawLeaderboard = function(user, list){
@@ -218,24 +245,29 @@ Drawing_html.prototype.drawTarget = function(user, list){
     this.prevView = "target";
 
     //Initial view creation
-    if(table==null){
+    if(table==null || (this.prevMenu[2].extras.advanced == false && user.menu[2].extras.advanced == true)){
+        table==null
         $(".view").empty();
 
         //Information
         $(".view").append("<div class='tableBox'><p id='info'> TARGETING: "+this.targetName+"<br>"+
                           "ARSENAL: "+user.targetBalls+"<br>"+
-                          "MONEY: "+user.money+this.moneySign+"</p></div>");
+                          "MONEY: "+user.money+this.moneySign+" (100"+this.moneySign+" per)</p></div>");
 
 
         //Table
-        $(".view .tableBox").append("<table id='target'><thead><tr><th id='NAME'>NAME</th><th id='SCORE'>SCORE</th><th id='BALLS'>#</th><th id='actions'>ACTIONS</th></tr></thead><tbody></tbody></table>");
+        $(".view .tableBox").append("<table id='target'><thead><tr><th id='NAME'>NAME</th>"+
+                                    (user.menu[2].extras.advanced?"<th id='SCORE'>SCORE</th>":"")+
+                                    "<th id='BALLS'>#</th><th id='actions'>ACTIONS</th></tr></thead><tbody></tbody></table>");
         
         //Doctor the data
         var result = [];
         for(var i = 0; i < list.length; i++){
             var temp = [], d = 0;
             temp[d] = "<tag "+(!list[i].isActive?"class='inactive'":"")+">"+list[i].name+"</tag>"; d++;
-            temp[d] = formatScore(list[i].score); d++;
+            if(user.menu[2].extras.advanced){
+                temp[d] = formatScore(list[i].score); d++;
+            }
             temp[d] = list[i].ballCount; d++;
             temp[d] = "<img class='targeting' id='"+list[i].id+"' src='"+this.targetImg.src+"'/><img class='send' id='"+list[i].id+"' src='"+this.sendImg.src+"'/>"; d++;
             result.push(temp);  
@@ -270,7 +302,7 @@ Drawing_html.prototype.drawTarget = function(user, list){
     //Update Data
     $(".view p#info").html("TARGETING: "+this.targetName+"<br>"+
                           "ARSENAL: "+user.targetBalls+"<br>"+
-                          "MONEY: "+user.money+this.moneySign);
+                          "MONEY: "+user.money+this.moneySign+" (100"+this.moneySign+" per)");
 }
 
 Drawing_html.prototype.drawHistory = function(user){
@@ -294,7 +326,7 @@ Drawing_html.prototype.drawHistory = function(user){
             else return 0;
         });
 
-        for(var h in history){
+        for(var h = 0; h < Math.min(history.length,50); h++){
             $(".view table#history tbody").append("<tr><td style='background-color:transparent' class='"+history[h].type+"'>⦿</td>"+
                                                     "<td>"+history[h].sender.name+"</td>"+
                                                     "<td style='font-size:9pt'>"+dateFormat(history[h].received)+"</td>"+
@@ -306,7 +338,94 @@ Drawing_html.prototype.drawHistory = function(user){
 }
 
 
-Drawing_html.prototype.drawSettings = function(user){}
+Drawing_html.prototype.drawSettings = function(user){
+    if(this.prevView!="settings"){
+        this.prevView = "settings";
+        table=null;
+        $(".view").empty();
+        var extras = user.menu[4].extras;
+        var context = this;
+
+        //Views
+        $(".view").append("<div id='settings'></div>");
+        var views = $("<div id='views'></div>");
+        if(extras.quickStats){
+            views.append("<p><b>VIEWS</b></p>");
+            views.append("Quick Stats: <input type='checkbox' name='quickStats' "+
+                         (this.quickStats?"checked":"")+"/>");
+            
+        }
+        $(".view #settings").append(views);
+
+        //Views Event listeners
+        $("input[type='checkbox']").on("click", function(){
+            context.quickStats = $(this).prop("checked");
+        });
+
+
+        //Background
+        var background = $("<div id='background'></div>");
+        if(extras.backgroundColor){
+            background.append("<p><b>BACKGROUND</b></p>");
+            background.append("Dynamic: <input type='radio' name='bgcolor' value='dynamic' "+
+                             (this.staticBGcolor==null?"checked":"")+"/><br>");
+            background.append("Static: <input type='radio' name='bgcolor' value='static'"+
+                             (this.staticBGcolor!=null?"checked":"")+"/>");
+            background.append("<br><p id='colorInput' style='display:"+(this.staticBGcolor!=null?"block":"none")+
+                              "'>Color: #<input type='text' name='color' value='"+this.staticBGcolor+"' pattern='[A-Fa-f0-9]{3,6}' minlength='3' maxlength='6'/></p>");
+        
+        }
+        $(".view #settings").append(background);
+
+        //Background Event listeners
+        $("input[type='radio']").on("click", function(){
+            var value = $("input[name='bgcolor']:checked").val();
+
+            if(value=="dynamic"){
+                context.staticBGcolor = null;
+                $("#colorInput").toggle(false);
+            } 
+            else{
+                if(context.staticBGcolor == null) context.staticBGcolor = "000";
+                else context.staticBGcolor = $("input[name='color']").val();
+                $("#colorInput").toggle(true); 
+            } 
+
+            localStorage.staticBGcolor = context.staticBGcolor;
+        });
+        $("input[name='color']").on("change", function(){
+            var value = $("input[name='color']").val();
+
+            if(/^#?([a-f\d]{1,2})([a-f\d]{1,2})([a-f\d]{1,2})$/i.test(value)==false) value = "000";
+            context.staticBGcolor = value;
+            localStorage.staticBGcolor = value;
+        });
+
+        //Sign out Button
+        $(".view #settings").append('<br><br><button id="signout">LOG OUT</button>');
+
+        $("button#signout").on("click",function(){
+            if(confirm("Are you sure you want to log out? You will still be in the game and will have to sign back in manually.")){
+                //Remove creds
+                localStorage.removeItem("email");
+                localStorage.removeItem("password");
+
+                //Redirect
+                window.location.assign(window.location.origin);
+            }else{}
+        });
+    }
+
+    //Signout button Coloring
+    var colorDown = 80;
+    $("#settings button").css("color","white");
+    if(this.staticBGcolor==null)
+        $("#settings button:hover").css("color","rgb("+Math.max(this.backColor.r-colorDown,0)+","+Math.max(this.backColor.g-colorDown,0)+","+Math.max(this.backColor.b-colorDown,0)+")");
+    else{
+        var color = hexToRgb("#"+this.staticBGcolor);
+        $("#settings button:hover").css("color","rgb("+Math.max(color.r-colorDown,0)+","+Math.max(color.g-colorDown,0)+","+Math.max(color.b-colorDown,0)+")");
+    }
+}
 
 Drawing_html.prototype.updateQuickStats = function(user,list){
     var userRank = rankPlayers(user,list)[1];
@@ -328,20 +447,19 @@ Drawing_html.prototype.resize = function(menuItems){
     $(".title").css("font-size",tSize);
 
     //Resize balls
-    this.ballSize = Math.min(Math.max(25,this.WIDTH*.05),60);
+    this.ballSize = Math.min(Math.max(30,this.WIDTH*.08),60);
     var margin = this.ballSize*(this.ballClickScale-1)/2;
     $(".ball").css({"width":this.ballSize+"px","height":this.ballSize+"px","margin":margin+"px 0 0 "+margin+"px"});
     $(".ballClick").css({"width":this.ballSize*this.ballClickScale+"px","height":this.ballSize*this.ballClickScale+"px"});
 
 
     //Check menu options
-    const menu = ["stats", "leaderboard", "quickStats", "target", "history", "settings"];
     var count = 0;
     for(var m in menuItems){
-        if(menuItems[m] && $(".menuItem#"+menu[m]).css("display") == "none"){
+        if(menuItems[m].unlocked && $(".menuItem#"+menuItems[m].name).css("display") == "none"){
             count++;
-            $(".menuItem#"+menu[m]).toggle(true);
-        }else if(menuItems[m]) count++;
+            $(".menuItem#"+menuItems[m].name).toggle(true);
+        }else if(menuItems[m].unlocked) count++;
     }
 
     //Adjust widths
@@ -509,7 +627,9 @@ function updateTargetTable(context,list){
     for(var i = 0; i < list.length; i++){
         var temp = [], d = 0;
         temp[d] = "<tag "+(!list[i].isActive?"class='inactive'":"")+">"+list[i].name+"</tag>"; d++;
-        temp[d] = formatScore(list[i].score); d++;
+        if(context.prevMenu[2].extras.advanced){
+            temp[d] = formatScore(list[i].score); d++;
+        }
         temp[d] = list[i].ballCount; d++;
         temp[d] = "<img class='targeting' id='"+list[i].id+"' src='"+context.targetImg.src+"'/><img class='send' id='"+list[i].id+"' src='"+context.sendImg.src+"'/>"; d++; 
         try{ 
@@ -533,9 +653,20 @@ function updateTargetTable(context,list){
                 }
             }
         else context.targetName = "RANDOM";
+        context.madeInput = true;
     });
 
     $(".send").on("click", function(){
         context.ballTarget = this.id;
+        context.madeInput = true;
     });
+}
+
+function hexToRgb(hex) {
+    var result = /^#?([a-f\d]{1,2})([a-f\d]{1,2})([a-f\d]{1,2})$/i.exec(hex);
+    return result ? {
+        r: parseInt(result[1], 16),
+        g: parseInt(result[2], 16),
+        b: parseInt(result[3], 16)
+    } : null;
 }

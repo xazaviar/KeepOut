@@ -1,4 +1,6 @@
 $(document).ready(function() {
+    serviceWorkerSetup();
+    
     //Check for login credentials
     if(typeof(localStorage.email) == "undefined" || typeof(localStorage.password) == "undefined"){
         window.location.assign(window.location.origin);         
@@ -34,4 +36,15 @@ function getCookie(cname) {
         }
     }
     return "";
+}
+
+function serviceWorkerSetup(){
+    if("serviceWorker" in navigator){
+        window.addEventListener("load", () => {
+            navigator.serviceWorker.register("/service-worker.js")
+                .then((reg) => {
+                    console.log("Service worker registered.", reg);
+                });
+        });
+    }
 }

@@ -5,7 +5,7 @@ function Ball(sender, auth, type, wid, hei){
 	this.x 			= parseInt(Math.random()*wid);
 	this.y 			= parseInt(Math.random()*hei);
 	this.direction 	= [(Math.random()*2-1)*speed,(Math.random()*2-1)*speed];
-	this.size 		= 20;//Radius
+	this.size 		= 20;//Radius (Does nothing)
 	this.keep		= true;
 	this.type		= type;
 }

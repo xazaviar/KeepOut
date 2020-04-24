@@ -1,4 +1,3 @@
-
 //Boot up
 $(document).ready(function() {
     serviceWorkerSetup();

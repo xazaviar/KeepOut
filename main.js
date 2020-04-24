@@ -109,7 +109,7 @@ app.get('/*', function (req, res, next) {
 app.post('/createNewUser', function(req, res){
     if(typeof req.body.name != "undefined" && typeof req.body.email != "undefined" && typeof req.body.password != "undefined"){
         var name = req.body.name;
-        var email = req.body.email;
+        var email = req.body.email.toLowerCase();
         var password = req.body.password;
 
 
@@ -159,7 +159,7 @@ app.post('/createNewUser', function(req, res){
 
 app.post('/signIn', function(req, res){
     if(typeof req.body.password != "undefined" && typeof req.body.email != "undefined"){
-        var email = req.body.email;
+        var email = req.body.email.toLowerCase();
         var password = req.body.password;
 
 

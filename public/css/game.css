@@ -300,6 +300,7 @@ a.disabled {
 /*********************HISTORY**********************/
 .view div#history {
 	min-height: 5px;
+	margin-bottom: 55px;
 }
 
 .view table#history {
@@ -337,6 +338,85 @@ a.disabled {
 .view th#SWAT {
 	width: 10%;
 	border: solid 1px white;
+}
+
+/*********************SETTINGS*********************/
+.view div#settings {
+	margin-top: 25px;
+	width: 100%;
+	text-align: center;
+	font-size: 15pt;
+}
+
+.view div#settings div#views{
+	width: 70%;
+	margin-right: auto;
+	margin-left: auto;
+	text-align: left;
+}
+
+.view input[type=checkbox] {
+	background-color: blue;
+	cursor: pointer;
+}
+
+.view div#settings div#background{
+	width: 70%;
+	margin-right: auto;
+	margin-left: auto;
+	text-align: left;
+}
+
+div#settings button {
+	font-weight: bold;
+	color: white;
+	background-color: transparent;
+	border: solid white 1px;
+	width: 145px;
+	font-size: 20pt;
+}
+
+div#settings button:focus {
+    outline: none;
+}
+
+div#settings button:hover {
+	background-color: white;
+	color: transparent;
+    cursor: pointer;
+}
+
+div#settings input[type=text] {
+    font-size: 12pt;
+	color: white;
+	background-color: transparent;
+	border: none;
+	border-bottom: solid white 2px;
+    width: 80px;
+}
+
+div#settings input[type=text]:focus {
+    outline: none;
+}
+
+div#settings #colorInput {
+	margin: 0 0 0 20px;
+}
+
+/*************************************************
+ * Level Up CSS
+ **************************************************/
+.levelUp {
+	position: absolute;
+	overflow: hidden;
+	display: none;
+	opacity: 0.0;
+	top: 0;
+	left: 0;
+	width: 100%;
+	height: 100%;
+	background-color: rgba(0,0,0,.6);
+	z-index: 200;
 }
 
 

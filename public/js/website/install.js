@@ -1,28 +1,32 @@
-'use strict';
+// 'use strict';
 let deferredInstallPrompt = null;
 var installButton;
 
 $(document).ready(function() {
 	installButton = $("button#install");
-	// installButton.on('click', installPWA);
+	installButton.toggle(false);
 	$("button#install").on("click", installPWA);
 });
 
-window.addEventListener('load', () => {
+
+window.addEventListener('load', function() {
 	if (navigator.standalone) {
 	    console.log('Launched: Installed (iOS)');
-	    installButton.toggle(false);
 	} else if (matchMedia('(display-mode: standalone)').matches) {
 	    console.log('Launched: Installed');
-	    installButton.toggle(false);
 	} else {
 	    console.log('Launched: Browser Tab');
 	}
+	// $("#title").css("color","black");
 });
 
 
 // CODELAB: Add event listener for beforeinstallprompt event
-window.addEventListener('beforeinstallprompt', saveBeforeInstallPromptEvent);
+window.addEventListener('beforeinstallprompt', e => {
+	e.preventDefault();
+	deferredInstallPrompt = e;
+	installButton.toggle(true);
+});
 
 /**
  * Event handler for beforeinstallprompt event.
@@ -46,7 +50,7 @@ function installPWA(evt) {
   	// CODELAB: Add code show install prompt & hide the install button.
   	deferredInstallPrompt.prompt();
   	// Hide the install button, it can't be called twice.
-  	evt.srcElement.toggle(false);
+  	installButton.toggle(false);
 
   	// CODELAB: Log user response to prompt.
   	deferredInstallPrompt.userChoice.then((choice) => {
