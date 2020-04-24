@@ -35,13 +35,13 @@ const logger = createLogger({
     ]
 });
 
-if (process.env.ISPROD==false) {
+// if (process.env.ISPROD==false) {
     logger.add(new transports.Console({
       format: consoleFormat
     }));
-}else{
-    logger.emitErrs = false;
-}
+// }else{
+//     logger.emitErrs = false;
+// }
 
 // Initialization
 var app = express();

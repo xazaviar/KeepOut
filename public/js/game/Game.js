@@ -213,8 +213,19 @@ Game.prototype.update = function() {
 
 Game.prototype.draw = function() {
 	//Resize the canvas
-    if(this.user)
+    if(this.user){
         this.drawing.resize(this.user.menu);
+
+        //Hide tutorial
+        if(this.user.swatCount >= 3){
+            $(".title p#tutorial").toggle(false);
+            $("p#title").toggle(true);
+        } 
+        else{
+            $(".title p#tutorial").toggle(true);
+            $(".title p#title").toggle(false);
+        }
+    }
 
     //Draw background
     this.drawing.drawBackground();

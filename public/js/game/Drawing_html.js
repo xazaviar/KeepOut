@@ -140,6 +140,7 @@ Drawing_html.prototype.drawLevelUp = function(){
             context.showingLevelup = false;
         });
     });
+    console.log("SHOWING LEVELUP");
 }
 
 //**************************************************************************
