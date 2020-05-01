@@ -19,41 +19,29 @@ function Drawing_html() {
     this.curView = null;
     this.prevView = null;
     this.prevBallCount = 0;
-    this.quickStats = false;
-    this.targetSort = "SCORE";
-    this.targetViewPage = 0;
-    this.targetViewPageCount = 10;
+    this.targetSortType = "NAME";
+    this.targetSortASC = true;
     this.madeInput = false;
     this.prevMenu = [];
-    this.staticBGcolor = (localStorage.staticBGcolor=="null"?null:localStorage.staticBGcolor);
     this.showingLevelup = false;
+    this.nameChange = null;
 
     //Ball Target
     this.ballTarget = null;
-    this.permTarget = null;
-    this.targetName = "RANDOM";
+    // this.permTarget = null;
+    // this.targetName = "RANDOM";
     this.storePurchase = null;
+    this.gameSender = "";
 
     this.moneySign = "〶"; //https://coolsymbol.com/
 
     //Tick
     this.ticks = 0;
 
-    //Target View Refresh Timer
-    var context = this;
-    setInterval(function(){if(table!=null) updateTargetTable(context)},500)
-
     //Menu Clicking
+    var context = this;
     $(".menuItem").on("click", function(){
-        if(context.curView != this.id) 
-            //Check for quickStats
-            if(this.id == "quickStats"){
-                context.quickStats = !context.quickStats;
-                if(context.quickStats) $(".menuItem#quickStats img").attr("src", context.quickStats_onImg.src);
-                else $(".menuItem#quickStats img").attr("src", context.quickStats_offImg.src);
-                context.curView = null;
-            } 
-            else context.curView = this.id;
+        if(context.curView != this.id) context.curView = this.id;
         else context.curView = null;
         context.madeInput = true;
     });
@@ -109,7 +97,11 @@ Drawing_html.prototype.removeBall = function(auth){
 //Drawing
 //**************************************************************************
 Drawing_html.prototype.drawBackground = function(){
-    if(this.staticBGcolor!=null && this.prevMenu.length>0 && this.prevMenu[4].extras.backgroundColor) $("body").css("background-color","#"+this.staticBGcolor);
+
+    if(this.staticBGcolor!=null && this.prevMenu.length>0 && this.prevMenu[4].extras.backgroundColor){
+        this.backColor = JSON.parse(JSON.stringify(this.staticBGcolor));
+        $("body").css("background-color","rgb("+this.staticBGcolor.r+","+this.staticBGcolor.g+","+this.staticBGcolor.b+")");
+    } 
     else{
         this.transitionColor();
         $("body").css("background-color","rgb("+this.backColor.r+","+this.backColor.g+","+this.backColor.b+")");
@@ -160,15 +152,15 @@ Drawing_html.prototype.drawAlternateView = function(user, list){
     } 
     else{
         $('.menuBar').css("height","");
-        $(".quickStats").toggle(this.quickStats);
-        if(this.quickStats) this.updateQuickStats(user, list);
+        $(".quickStats").toggle(this.quickStatsEnabled);
+        if(this.quickStatsEnabled) this.updateQuickStats(user, list);
     } 
 
     //Update the current view 
     if(this.curView == "leaderboard") this.drawLeaderboard(user, list);
     else if(this.curView == "stats") this.drawStats(user, list);
     else if(this.curView == "target") this.drawTarget(user, list);
-    else if(this.curView == "history") this.drawHistory(user);
+    else if(this.curView == "history") this.drawHistory(user, list);
     else if(this.curView == "settings") this.drawSettings(user);
 
     this.prevMenu = user.menu;
@@ -243,70 +235,54 @@ Drawing_html.prototype.drawStats = function(user, list){
 }
 
 Drawing_html.prototype.drawTarget = function(user, list){
-    this.prevView = "target";
 
     //Initial view creation
-    if(table==null || (this.prevMenu[2].extras.advanced == false && user.menu[2].extras.advanced == true)){
+    if(this.prevView!="target" || (this.prevMenu[2].extras.advanced == false && user.menu[2].extras.advanced == true)){
+        this.prevView = "target";
         table==null
         $(".view").empty();
 
         //Information
-        $(".view").append("<div class='tableBox'><p id='info'> TARGETING: "+this.targetName+"<br>"+
-                          "ARSENAL: "+user.targetBalls+"<br>"+
-                          "MONEY: "+user.money+this.moneySign+" (100"+this.moneySign+" per)</p></div>");
+        $(".view").append("<div class='tableBox'><p id='info'></p></div>");
 
-
-        //Table
-        $(".view .tableBox").append("<table id='target'><thead><tr><th id='NAME'>NAME</th>"+
-                                    (user.menu[2].extras.advanced?"<th id='SCORE'>SCORE</th>":"")+
-                                    "<th id='BALLS'>#</th><th id='actions'>ACTIONS</th></tr></thead><tbody></tbody></table>");
-        
-        //Doctor the data
-        var result = [];
-        for(var i = 0; i < list.length; i++){
-            var temp = [], d = 0;
-            temp[d] = "<tag "+(!list[i].isActive?"class='inactive'":"")+">"+list[i].name+"</tag>"; d++;
-            if(user.menu[2].extras.advanced){
-                temp[d] = formatScore(list[i].score); d++;
-            }
-            temp[d] = list[i].ballCount; d++;
-            temp[d] = "<img class='targeting' id='"+list[i].id+"' src='"+this.targetImg.src+"'/><img class='send' id='"+list[i].id+"' src='"+this.sendImg.src+"'/>"; d++;
-            result.push(temp);  
-        }
-        table = $('#target').DataTable({
-            "data": result,
-            "iDisplayLength": -1,
-            "bLengthChange": false,
-            "pageLength": 10,
-            "searching": true,
-            "aaSorting": [0,"asc"]
-        });
-
-        var context = this;
-        $(".targeting").on("click", function(){
-            if(context.permTarget==this.id) context.permTarget = null;
-            else context.permTarget = this.id;
-        });
-
-        $(".send").on("click", function(){
-            context.ballTarget = this.id;
-        });
-
-        //Update Defaults
-        $(".dataTables_filter").append("<p id='searchText'>SEARCH:</p>");
+        drawTargetTable(this,list,user.menu[2].extras.advanced);
     }
 
-    $("a.previous.paginate_button").text("<");
-    $("a.next.paginate_button").text(">");
 
+    if(user.menu[2].extras.advanced) $(".view th#name").css("width","35%");
+    else $(".view th#name").css("width","45%");
 
     //Update Data
-    $(".view p#info").html("TARGETING: "+this.targetName+"<br>"+
-                          "ARSENAL: "+user.targetBalls+"<br>"+
-                          "MONEY: "+user.money+this.moneySign+" (100"+this.moneySign+" per)");
+    var fill ="TARGETING: "+this.targetName+"<br>"+
+              "MONEY: "+user.money+this.moneySign+"<br>"+
+              "ARSENAL: "+user.targetBalls+'<button id="purchase">+</button>'+" (100"+this.moneySign+" per)";
+    if($(".view p#info").html()!=fill){
+        $(".view p#info").html(fill);
+
+        var context = this;
+        $("button#purchase").on("click", function(){
+            context.storePurchase = "TARGET_BALL";
+        });
+    } 
+
+    for(var i = 0; i < list.length; i++){
+        if(this.permTarget!=null && this.permTarget==list[i].id) this.targetName = list[i].name;
+        $("tr#_"+list[i].id+" td#name").html("<tag "+(!list[i].isActive?"class='inactive'":"")+">"+list[i].name+"</tag>");
+        $("tr#_"+list[i].id+" td#score").text(formatScore(list[i].score));
+        $("tr#_"+list[i].id+" td#balls").text(list[i].ballCount);
+    }
+
+    //plus button Coloring
+    // var colorDown = 80;
+    // $(".tableBox button").css("color","white");
+    // if(this.staticBGcolor==null)
+    //     $(".tableBox button:hover").css("color","rgb("+Math.max(this.backColor.r-colorDown,0)+","+Math.max(this.backColor.g-colorDown,0)+","+Math.max(this.backColor.b-colorDown,0)+")");
+    // else{
+    //     $(".tableBox button:hover").css("color","rgb("+Math.max(this.staticBGcolor.r-colorDown,0)+","+Math.max(this.staticBGcolor.g-colorDown,0)+","+Math.max(this.staticBGcolor.b-colorDown,0)+")");
+    // }
 }
 
-Drawing_html.prototype.drawHistory = function(user){
+Drawing_html.prototype.drawHistory = function(user, list){
     if(this.prevView!="history" || this.ballList.length!=this.prevBallCount){
         this.prevView = "history";
         this.prevBallCount = this.ballList.length;
@@ -328,8 +304,18 @@ Drawing_html.prototype.drawHistory = function(user){
         });
 
         for(var h = 0; h < Math.min(history.length,50); h++){
+            var name = "N/A";
+            if(history[h].sender.id == -1) name = this.gameSender;
+            else for(var l in list){
+                if(list[l].id == history[h].sender.id){
+                    name = list[l].name;
+                    break;
+                }
+            }
+
+
             $(".view table#history tbody").append("<tr><td style='background-color:transparent' class='"+history[h].type+"'>⦿</td>"+
-                                                    "<td>"+history[h].sender.name+"</td>"+
+                                                    "<td>"+name+"</td>"+
                                                     "<td style='font-size:9pt'>"+dateFormat(history[h].received)+"</td>"+
                                                     "<td>"+(history[h].removed?convertSeconds((history[h].removed-history[h].received)/1000):"LIVE")+"</td>"+
                                                     "<td>"+(history[h].removed?(history[h].autoSwat?"X":"✓"):"")+"</td>"+
@@ -338,8 +324,25 @@ Drawing_html.prototype.drawHistory = function(user){
     }
 }
 
-
 Drawing_html.prototype.drawSettings = function(user){
+    //Reference: https://htmlcolorcodes.com/color-chart/
+    var colorList = [
+        {"name": "Passion Fruit",   "color": {r:211,g:47,b:47}},
+        {"name": "Zest",            "color": {r:194,g:24,b:91}},
+        {"name": "Royal",           "color": {r:123,g:31,b:162}},
+        {"name": "Midnight",        "color": {r:81,g:45,b:168}},
+        {"name": "Chill",           "color": {r:48,g:63,b:159}},
+        {"name": "Ocean",           "color": {r:2,g:136,b:209}},
+        {"name": "Dinosaur",        "color": {r:0,g:121,b:107}},
+        {"name": "Jungle",          "color": {r:56,g:142,b:80}},
+        {"name": "Sun Rise",        "color": {r:251,g:192,b:45}},
+        {"name": "Sun Set",         "color": {r:245,g:124,b:0}},
+        {"name": "Summer Heat",     "color": {r:230,g:74,b:25}},
+        {"name": "Sophisticated",   "color": {r:93,g:64,b:55}},
+        {"name": "Rain",            "color": {r:69,g:90,b:100}},
+        {"name": "Blank",           "color": {r:255,g:255,b:255}}
+    ]
+    
     if(this.prevView!="settings"){
         this.prevView = "settings";
         table=null;
@@ -347,20 +350,32 @@ Drawing_html.prototype.drawSettings = function(user){
         var extras = user.menu[4].extras;
         var context = this;
 
-        //Views
+        
         $(".view").append("<div id='settings'></div>");
+
+        //Player Info
+        var playerInfo = $("<div id='views'></div>");
+        if(extras.nameChange){
+            playerInfo.append("<p><b>PLAYER INFO</b></p>");
+            playerInfo.append("Name: <input type='text' name='name' value='"+user.name+"' minlength=3 maxlength=12/>");
+            playerInfo.append("<button id='nameChange'>✓</button>");
+            
+        }
+        $(".view #settings").append(playerInfo);
+
+        //Views
         var views = $("<div id='views'></div>");
         if(extras.quickStats){
             views.append("<p><b>VIEWS</b></p>");
             views.append("Quick Stats: <input type='checkbox' name='quickStats' "+
-                         (this.quickStats?"checked":"")+"/>");
+                         (this.quickStatsEnabled?"checked":"")+"/>");
             
         }
         $(".view #settings").append(views);
 
         //Views Event listeners
         $("input[type='checkbox']").on("click", function(){
-            context.quickStats = $(this).prop("checked");
+            context.quickStatsEnabled = $(this).prop("checked");
         });
 
 
@@ -372,8 +387,17 @@ Drawing_html.prototype.drawSettings = function(user){
                              (this.staticBGcolor==null?"checked":"")+"/><br>");
             background.append("Static: <input type='radio' name='bgcolor' value='static'"+
                              (this.staticBGcolor!=null?"checked":"")+"/>");
+
+            var options = "";
+            for(var c in colorList){
+                var selected = false;
+                if(context.staticBGcolor!=null && context.staticBGcolor.r==colorList[c].color.r) selected = true;
+
+                options+="<option value='"+colorList[c].name+"' "+(selected?"selected":"")+">"+colorList[c].name+"</option>";
+            }
+
             background.append("<br><p id='colorInput' style='display:"+(this.staticBGcolor!=null?"block":"none")+
-                              "'>Color: #<input type='text' name='color' value='"+this.staticBGcolor+"' pattern='[A-Fa-f0-9]{3,6}' minlength='3' maxlength='6'/></p>");
+                              "'>Color: <select id='color'>"+options+"</select></p>");
         
         }
         $(".view #settings").append(background);
@@ -392,14 +416,14 @@ Drawing_html.prototype.drawSettings = function(user){
                 $("#colorInput").toggle(true); 
             } 
 
-            localStorage.staticBGcolor = context.staticBGcolor;
         });
-        $("input[name='color']").on("change", function(){
-            var value = $("input[name='color']").val();
-
-            if(/^#?([a-f\d]{1,2})([a-f\d]{1,2})([a-f\d]{1,2})$/i.test(value)==false) value = "000";
-            context.staticBGcolor = value;
-            localStorage.staticBGcolor = value;
+        $("select#color").on("change", function(){
+            for(var c in colorList){
+                if(colorList[c].name == $(this).children("option:selected").val()){
+                    context.staticBGcolor = colorList[c].color;
+                    break;
+                }
+            }
         });
 
         //Sign out Button
@@ -415,6 +439,14 @@ Drawing_html.prototype.drawSettings = function(user){
                 window.location.assign(window.location.origin);
             }else{}
         });
+
+        $("button#nameChange").on("click",function(){
+            var nameVal = $("input[name='name']").val();
+
+            if(confirm("Are you sure you want to change your name to "+nameVal+"?")){
+                context.nameChange = nameVal;
+            }else{}
+        });
     }
 
     //Signout button Coloring
@@ -423,8 +455,7 @@ Drawing_html.prototype.drawSettings = function(user){
     if(this.staticBGcolor==null)
         $("#settings button:hover").css("color","rgb("+Math.max(this.backColor.r-colorDown,0)+","+Math.max(this.backColor.g-colorDown,0)+","+Math.max(this.backColor.b-colorDown,0)+")");
     else{
-        var color = hexToRgb("#"+this.staticBGcolor);
-        $("#settings button:hover").css("color","rgb("+Math.max(color.r-colorDown,0)+","+Math.max(color.g-colorDown,0)+","+Math.max(color.b-colorDown,0)+")");
+        $("#settings button:hover").css("color","rgb("+Math.max(this.staticBGcolor.r-colorDown,0)+","+Math.max(this.staticBGcolor.g-colorDown,0)+","+Math.max(this.staticBGcolor.b-colorDown,0)+")");
     }
 }
 
@@ -622,30 +653,51 @@ function formatScore(score){
     return text;
 }
 
-function updateTargetTable(context,list){
-    var list = recentList;
-    var result = [];
+function drawTargetTable(context, list, advanced){
+    //Sort the list
+    list.sort(function(a,b){
+        if(context.targetSortType=="NAME"){
+            if(a.name.toUpperCase()>b.name.toUpperCase()) return context.targetSortASC?1:-1;
+            if(a.name.toUpperCase()<b.name.toUpperCase()) return context.targetSortASC?-1:1;
+            else return 0;
+        }
+        else if(context.targetSortType=="SCORE"){
+            if(a.score>b.score) return context.targetSortASC?1:-1;
+            if(a.score<b.score) return context.targetSortASC?-1:1;
+            else return 0;
+        }
+        else if(context.targetSortType=="BALLS"){
+            if(a.ballCount>b.ballCount) return context.targetSortASC?1:-1;
+            if(a.ballCount<b.ballCount) return context.targetSortASC?-1:1;
+            else return 0;
+        }
+    });
+
+    //Table
+    $(".view .tableBox table").empty();
+    $(".view .tableBox").append("<table id='target'><thead><tr><th id='NAME'>NAME</th>"+
+                                (advanced?"<th id='SCORE'>SCORE</th>":"")+
+                                "<th id='BALLS'>#</th><th id='actions'>ACTIONS</th></tr></thead><tbody></tbody></table>");
+
+    var data = "";
     for(var i = 0; i < list.length; i++){
-        var temp = [], d = 0;
-        temp[d] = "<tag "+(!list[i].isActive?"class='inactive'":"")+">"+list[i].name+"</tag>"; d++;
-        if(context.prevMenu[2].extras.advanced){
-            temp[d] = formatScore(list[i].score); d++;
+        data+="<tr id='_"+list[i].id+"'>";
+        data+="<td id='name'><tag "+(!list[i].isActive?"class='inactive'":"")+">"+list[i].name+"</tag></td>";
+        if(advanced){
+            data+="<td id='score'>"+formatScore(list[i].score)+"</td>";
         }
-        temp[d] = list[i].ballCount; d++;
-        temp[d] = "<img class='targeting' id='"+list[i].id+"' src='"+context.targetImg.src+"'/><img class='send' id='"+list[i].id+"' src='"+context.sendImg.src+"'/>"; d++; 
-        try{ 
-            table.row(i).data(temp);
-        }
-        catch (err){
-            table.row.add(temp);
-        }
+        data+="<td id='balls'>"+list[i].ballCount+"</td>";
+        data+="<td id='actions'><img class='targeting' id='"+list[i].id+"' src='"+context.targetImg.src+"'/><img class='send' id='"+list[i].id+"' src='"+context.sendImg.src+"'/></td>";
+        data+="</tr>";
     }
-    // table.draw(); //Not needed, but will auto sort rows
+
+    $(".view .tableBox tbody").append(data);
 
     $(".targeting").on("click", function(){
         if(context.permTarget==this.id) context.permTarget = null;
         else context.permTarget = this.id;
 
+        //Might be able to make O(1)
         if(context.permTarget!=null)
             for(var i in list){
                 if(list[i].id==context.permTarget){
@@ -659,7 +711,13 @@ function updateTargetTable(context,list){
 
     $(".send").on("click", function(){
         context.ballTarget = this.id;
-        context.madeInput = true;
+    });
+
+    //Sorting Headers
+    $("th").on("click", function(){
+        if(context.targetSortType == this.id) context.targetSortASC = !context.targetSortASC;
+        context.targetSortType = this.id;
+        drawTargetTable(context, list, advanced);
     });
 }
 

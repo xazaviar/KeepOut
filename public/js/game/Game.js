@@ -57,6 +57,33 @@ Game.prototype.init = function(email, password) {
         context.otherPlayers = data['players'];
         context.gameRules = data['rules'];
         context.reconnectAttempts = 10;
+
+        //Load prev settings
+        context.drawing.permTarget = context.user.permTarget;
+        if(!context.user.dynamicBackground)
+            context.drawing.staticBGcolor = context.user.backColor;
+        else
+            context.drawing.staticBGcolor = null;
+        context.drawing.quickStatsEnabled = context.user.quickStatsEnabled;
+        context.drawing.gameSender = context.gameRules.GAME_SENDER;
+
+        if(context.drawing.permTarget!=null){
+            var found = false;
+            for(var i in context.otherPlayers){
+                if(context.otherPlayers[i].id==context.user.permTarget){
+                    context.drawing.targetName = context.otherPlayers[i].name;
+                    found = true;
+                    break;
+                }
+            }
+            if(!found){
+                context.drawing.targetName = "RANDOM";
+                context.drawing.permTarget = null;
+            }
+        }
+        else context.drawing.targetName = "RANDOM";
+        this.init = true;
+
         console.log("Connected to the game");
     });
     this.socket.on('failed-connect', function(data) {
@@ -104,6 +131,14 @@ Game.prototype.receiveGameState = function(state) {
             for(var o in this.otherPlayers){
                 if(updates[u].id == this.otherPlayers[o].id){
                     this.otherPlayers[o].isActive = false;
+                    break;
+                }  
+            }
+        }
+        else if(updates[u].type == "playerRemoved"){
+            for(var o in this.otherPlayers){
+                if(updates[u].id == this.otherPlayers[o].id){
+                    this.otherPlayers.splice(o,1);
                     break;
                 }  
             }
@@ -180,31 +215,36 @@ Game.prototype.receiveGameState = function(state) {
 
 Game.prototype.update = function() {
     // console.log("FRAME "+this.animationFrameId);
+    if(this.user){
+        this.socket.emit('player-action', {
+            keyboardState: {
+                misc:       Input.MISC_KEYS
+            },
+            mouseState: {
+                left:       Input.LEFT_CLICK
+            },
+            gameState: {
+                backColor:  this.drawing.backColor, 
+                auth:       this.clickedBall,
+                sendBall:   this.drawing.ballTarget,
+                permTarget: this.drawing.permTarget,
+                storePurchase: this.drawing.storePurchase,
+                nameChange: this.drawing.nameChange,
+                dynamicBackground: this.drawing.staticBGcolor == null,
+                quickStatsEnabled: this.drawing.quickStatsEnabled,
+                gotLvlup: this.gotLvlup 
+            }
+        });
+        //Reset variables
+        this.clickedBall = null;
+        this.drawing.ballTarget = null;
+        this.drawing.storePurchase = null;
+        this.drawing.nameChange = null;
 
-	this.socket.emit('player-action', {
-        keyboardState: {
-            misc:       Input.MISC_KEYS
-        },
-        mouseState: {
-            left:       Input.LEFT_CLICK
-        },
-        gameState: {
-            backColor:  this.drawing.backColor, 
-            auth:       this.clickedBall,
-            sendBall:   this.drawing.ballTarget,
-            permTarget: this.drawing.permTarget,
-            storePurchase: this.drawing.storePurchase,
-            gotLvlup: this.gotLvlup 
+        if(this.drawing.madeInput){
+            this.drawing.madeInput = false;
+            this.lastInput = Date.now();
         }
-    });
-    //Reset variables
-    this.clickedBall = null;
-    this.drawing.ballTarget = null;
-    this.drawing.storePurchase = null;
-
-    if(this.drawing.madeInput){
-        this.drawing.madeInput = false;
-        this.lastInput = Date.now();
     }
 
     this.draw();
@@ -267,8 +307,12 @@ Game.prototype.constUpdate = function(){
     // console.log("TICK "+this.drawing.ticks);
 
     if(this.otherPlayers.length > 0){
+        var scoreAutoModifier = Math.floor(this.user.score/this.gameRules.NEGATIVE_BOOST_SCALING_PER)*-1*
+                                this.gameRules.NEGATIVE_BOOST_SCALING_AMT+this.gameRules.NEGATIVE_BOOST_SCALING_AMT;
+
         //Update Self
         if(this.user.activeBoost.dur > 0) this.user.activeBoost.dur--;
+        else if(this.user.score < 0) this.user.activeBoost = {amt:scoreAutoModifier,dur:-1}; 
         else this.user.activeBoost = {amt:this.gameRules.BASE_POINT_GAIN,dur:-1};
 
         //Update Counters

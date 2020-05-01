@@ -22,6 +22,10 @@ body {
 	margin: auto;
 }
 
+#title{
+	display: none;
+}
+
 .noselect {
   -webkit-touch-callout: none; /* iOS Safari */
     -webkit-user-select: none; /* Safari */
@@ -209,16 +213,19 @@ body {
 
 .view th#name {
 	width: 35%;
+	cursor: pointer;
 	/*border: solid 1px white;*/
 }
 
 .view th#score {
 	width: 20%;
+	cursor: pointer;
 	/*border: solid 1px white;*/
 }
 
 .view th#balls {
 	width: 10%;
+	cursor: pointer;
 	/*border: solid 1px white;*/
 }
 
@@ -227,14 +234,39 @@ body {
 	/*border: solid 1px white;*/
 }
 
+.view table#target td#name{
+	padding-top: 10px;
+	padding-bottom: 10px;
+}
+
 .view tag.inactive{
 	color: #AAA;
 }
 
 .view img{
-	width: 30px;
+	width: 35px;
 	margin-right: 7px;
 	margin-left: 7px;
+}
+
+.view .tableBox button{
+	font-weight: bold;
+	color: white;
+	background-color: transparent;
+	border: solid white 1px;
+	/*width: 145px;*/
+	margin-left: 10px;
+	font-size: 15pt;
+}
+
+.view .tableBox button:focus{
+    outline: none;
+}
+
+.view .tableBox button:hover{
+	background-color: white;
+	color: rgb(125,125,125);
+    cursor: pointer;
 }
 
 .view .dataTables_info#target_info {
@@ -243,6 +275,7 @@ body {
 
 .view p#info {
 	margin-left: 5%;
+	line-height: 30px;
 }
 
 .dataTables_filter {
@@ -392,7 +425,7 @@ div#settings input[type=text] {
 	background-color: transparent;
 	border: none;
 	border-bottom: solid white 2px;
-    width: 80px;
+    width: 120px;
 }
 
 div#settings input[type=text]:focus {
@@ -401,6 +434,12 @@ div#settings input[type=text]:focus {
 
 div#settings #colorInput {
 	margin: 0 0 0 20px;
+}
+
+div#settings button#nameChange {
+	width: 40px;
+    font-size: 15pt;
+    margin-left: 10px;
 }
 
 /*************************************************

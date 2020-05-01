@@ -77,17 +77,6 @@ app.get('/.well-known/*',function (req, res, next) {
     res.sendFile( __dirname + "/.well-known/" + file );
 });
 
-// app.get('/cert/*',function (req, res, next) {
-//     var file = req.params[0];
-//      if(err){
-//         logger.error("No such file or directory '"+err.path+"' [REQUEST FROM: "+ip+"]");
-//         res.sendFile( __dirname + "/public/404.html" );
-//     }else{
-//         logger.info("SSL CERT READ: "+file);
-//         res.sendFile( __dirname + "/cert/" + file );
-//     }
-// });
-
 app.get('/*', function (req, res, next) {
     var file = req.params[0];
 
@@ -115,6 +104,7 @@ app.post('/createNewUser', function(req, res){
 
         //Name validation/Corrections
         name = name.trim(); //Remove surrounding whitespace
+        name = name.replace(/</g, "").replace(/>/g, "").replace(/'/g, "").replace(/"/g, ""); //Remove illegal characters
         name = name.split(" ").join("_"); //Turn inner whitespace into underlines
         if(name.length > 12) name = name.substring(0,12); //Shorten name
         if(name.length < 3) name = "user_"+Util.generateToken(6); //Give random name for too short name
