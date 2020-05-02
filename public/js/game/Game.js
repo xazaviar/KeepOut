@@ -332,6 +332,13 @@ Game.prototype.constUpdate = function(){
         //Update others
         for(var o in this.otherPlayers){
             var player = this.otherPlayers[o];
+            var scoreAutoModifier = Math.floor(player.score/this.gameRules.NEGATIVE_BOOST_SCALING_PER)*-1*
+                                this.gameRules.NEGATIVE_BOOST_SCALING_AMT+this.gameRules.NEGATIVE_BOOST_SCALING_AMT;
+
+            if(player.activeBoost.dur > 0) player.activeBoost.dur--;
+            else if(player.score < 0) player.activeBoost = {amt:scoreAutoModifier,dur:-1}; 
+            else player.activeBoost = {amt:this.gameRules.BASE_POINT_GAIN,dur:-1};
+
             player.score += player.activeBoost.amt + player.ballCount*this.gameRules.BALL_POINT_COST;
         }
 
