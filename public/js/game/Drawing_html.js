@@ -276,6 +276,9 @@ Drawing_html.prototype.drawLeaderboard = function(user, list){
         var r = 0, participated = false;
         for(; r < Math.min(10,roundData.rankings.length); r++){
             var name = getNameFromID(roundData.rankings[r].id, list);
+
+            if(name=="N/A") name = roundData.rankings[r].name;
+
             if(roundData.rankings[r].id == user.id){
                 $(".view table#leaderboard tbody").append("<tr class='user'><td>"+roundData.rankings[r].rank+"</td><td>"+user.name+"</td><td>"+formatScore(roundData.rankings[r].score)+"</td></tr>");
                 participated = roundData.rankings[r];
@@ -695,7 +698,7 @@ function roundDateFormat(targetDate){
 
     var ret = "";
     if(days > 2) ret = days+"d "+hours+"h";
-    else if(days*24+hours > 1) ret = (days*24+hours>9?days*24+hours:"0"+(days*24+hours))+":"+(minutes>9?minutes:"0"+minutes);
+    else if(days*24+hours > 1) ret = (days*24+hours>9?days*24+hours:"0"+(days*24+hours))+":"+(minutes>9?minutes:"0"+minutes)+":"+(seconds>9?seconds:"0"+seconds);
     else if(minutes > 0) ret = (minutes>9?minutes:"0"+minutes)+":"+(seconds>9?seconds:"0"+seconds);
     else ret = "00:"+(seconds>9?seconds:"0"+seconds)+"."+(milliseconds>9?milliseconds:"0"+milliseconds);
 
