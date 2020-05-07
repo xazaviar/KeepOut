@@ -1,0 +1,97 @@
+{
+    "id": "public",
+    "name": "PUBLIC ROOM",
+    "ballToPlayerRatio": 1,
+    "resetDate": 1588971600000,
+    "players": [],
+    "round": 2,
+    "roundData": [
+        {
+            "round": 1,
+            "start": 1587762000000,
+            "end": 1588366800000,
+            "rankings": [
+                {
+                    "rank": 1,
+                    "id": "GOpfjTIr7MjF05Pq64kX",
+                    "score": 34930.5
+                },
+                {
+                    "rank": 2,
+                    "id": "Ek07gBDa49SiBSJgJT8h",
+                    "score": 28387.5
+                },
+                {
+                    "rank": 3,
+                    "id": "XVOwodjJN55fq4HCMgfz",
+                    "score": 22294
+                },
+                {
+                    "rank": 4,
+                    "id": "7yOgsPVeanGV2Vw3F2pJ",
+                    "score": 18737
+                },
+                {
+                    "rank": 5,
+                    "id": "DUGYezvutXZD5U3AaXeO",
+                    "score": 18593.5
+                },
+                {
+                    "rank": 6,
+                    "id": "hvCIo9R09fFQ1OZ7iqRx",
+                    "score": 18379.5
+                },
+                {
+                    "rank": 7,
+                    "id": "wF8gqAqD7ba4e80SIE9s",
+                    "score": 17558.5
+                },
+                {
+                    "rank": 8,
+                    "id": "QThJDL5ioG18oUyK4qgJ",
+                    "score": 17001.5
+                },
+                {
+                    "rank": 9,
+                    "id": "CWa2toj3UlrbT1mZ1MLV",
+                    "score": 16318
+                },
+                {
+                    "rank": 10,
+                    "id": "VDJD9vT8a4zBg5EudJFj",
+                    "score": 14856
+                },
+                {
+                    "rank": 11,
+                    "id": "9kEtvU3pkNOOyPO92ax4",
+                    "score": 13474
+                },
+                {
+                    "rank": 12,
+                    "id": "F3D3V24LT2XuhCGfhTpd",
+                    "score": 12308
+                },
+                {
+                    "rank": 13,
+                    "id": "DBWPnNPSaikJ01APTBgF",
+                    "score": 10997.5
+                },
+                {
+                    "rank": 14,
+                    "id": "HS9tL5jMYbBTX2ROQzpN",
+                    "score": 6693.5
+                },
+                {
+                    "rank": 15,
+                    "id": "JuhCvUnE1JAftNcYkIQw",
+                    "score": 5579
+                },
+                {
+                    "rank": 16,
+                    "id": "rZmdGgaAeMCFRJTcadKE",
+                    "score": 1029
+                }
+            ]
+        }
+    ]
+}

@@ -14,13 +14,7 @@ loadData(function(playerData){
 //Update as needed when data needs to be changed for the game to function
 function makeChanges(playerData){
 	for(var p in playerData){
-		playerData[p]["inGame"] = false; //Indicates if the player is playing the game
-		playerData[p]["lastActive"] = Date.now(); //Shows when the player was last active
-		playerData[p]["dynamicBackground"] = true; //Player background color setting
-		playerData[p]["quickStatsEnabled"] = false; //Player quick stats display setting
-		playerData[p].menu[4].extras["nameChange"] = true;
-		playerData[p].score = 0;
-		playerData[p].targetBalls+=20;
+		playerData[p]["showRoundEnd"] = false; 
 	}
     console.log("Player data updated");
 }

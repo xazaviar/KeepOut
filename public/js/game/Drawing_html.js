@@ -24,7 +24,9 @@ function Drawing_html() {
     this.madeInput = false;
     this.prevMenu = [];
     this.showingLevelup = false;
+    this.showingRoundEnd = false;
     this.nameChange = null;
+    this.roundHistory = 0;
 
     //Ball Target
     this.ballTarget = null;
@@ -124,15 +126,46 @@ Drawing_html.prototype.drawLevelUp = function(){
     this.showingLevelup = true;
     var context = this;
     $(".title#main").toggle(false);
+    $(".overlay").toggle(false);
+    $(".menuBar").toggle(false);
     $(".levelUp").toggle(true);
     $(".levelUp").animate({opacity:1.0},2000,function(){
         $(".levelUp").delay(1000).animate({opacity:0.0},2000,function(){
             $(".title#main").toggle(true);
             $(".levelUp").toggle(false);
+            $(".overlay").toggle(true);
+            $(".menuBar").toggle(true);
             context.showingLevelup = false;
         });
     });
     console.log("SHOWING LEVELUP");
+}
+
+Drawing_html.prototype.drawRoundEnd = function(ranking, size){
+    console.log(ranking);
+    this.showingRoundEnd = true;
+    var context = this;
+    $(".title#main").toggle(false);
+    $(".overlay").toggle(false);
+    $(".menuBar").toggle(false);
+    $(".roundEnd").toggle(true);
+
+    $(".roundEnd p#message").html(ranking.message);
+    $(".roundEnd p#info").html("Round "+(this.gameInfo.roundData.length)+" has ended. "+
+                               "You came in <b>"+ranking.rank+rankWord(ranking.rank)+
+                               "</b> place out of "+size+" people with a final score of <b>"+
+                               formatScore(ranking.score)+"</b>. <br>Good luck in the next round!");
+
+    $(".roundEnd").animate({opacity:1.0},2000,function(){
+        $(".roundEnd").delay(4000).animate({opacity:0.0},2000,function(){
+            $(".title#main").toggle(true);
+            $(".roundEnd").toggle(false);
+            $(".overlay").toggle(true);
+            $(".menuBar").toggle(true);
+            context.showingRoundEnd = false;
+        });
+    });
+    console.log("SHOWING ROUND END");
 }
 
 //**************************************************************************
@@ -142,18 +175,24 @@ Drawing_html.prototype.drawAlternateView = function(user, list){
     recentList = list;
 
     //display overlay
-    if(!this.showingLevelup){
+    // console.log(this.showingLevelup, this.showingRoundEnd);
+    if(!this.showingLevelup && !this.showingRoundEnd){
         $(".overlay").toggle(this.curView!=null);
         $(".title#main").toggle(this.curView==null);
-    }
-    if(this.curView!=null){
-        $('.menuBar').css("height","50px");
-        $(".quickStats").toggle(false);
-    } 
-    else{
-        $('.menuBar').css("height","");
-        $(".quickStats").toggle(this.quickStatsEnabled);
-        if(this.quickStatsEnabled) this.updateQuickStats(user, list);
+
+        if(this.curView!=null){
+            $('.menuBar').css("height","50px");
+            $(".quickStats").toggle(false);
+        } 
+        else{
+            $('.menuBar').css("height","");
+            $(".quickStats").toggle(this.quickStatsEnabled);
+            if(this.quickStatsEnabled) this.updateQuickStats(user, list);
+        }
+    }else{
+        $(".overlay").toggle(false);
+        $(".title#main").toggle(false);
+        $(".menuBar").toggle(false);
     } 
 
     //Update the current view 
@@ -167,36 +206,98 @@ Drawing_html.prototype.drawAlternateView = function(user, list){
 }
 
 Drawing_html.prototype.drawLeaderboard = function(user, list){
-    $(".view").empty();
-    this.prevView = "leaderboard";
-    table = null;
 
-    //Sort list
-    var temp = rankPlayers(user, list);
-    var rankings = temp[0];
-    var userRank = temp[1];
+    if(this.prevView!="leaderboard"){
+        $(".view").empty();
+        this.prevView = "leaderboard";
+        $(".view").append("<p id='roundInfo' class='noselect'></p><table id='leaderboard'><thead><tr><th>RANK</th><th>NAME</th><th>SCORE</th></tr></thead><tbody></tbody></table><p id='status'></p>");
+        
+        //Display round info
+        $(".view p#roundInfo").html("<b class='arrow noselect' id='arrowLeft'>←</b> <tag id='round'>ROUND "+this.gameInfo.round+"</tag> <b class='arrow noselect' id='arrowRight'>→</b><br> <tag id='date'>This round ends in "+roundDateFormat(this.gameInfo.resetDate)+"</tag>");
 
-    $(".view").append("<table id='leaderboard'><thead><tr><th>RANK</th><th>NAME</th><th>SCORE</th></tr></thead><tbody></tbody></table>");
-
-    var inserted = false;
-    for(var r = 0; r < Math.min(10,rankings.length); r++){
-        if(rankings[r].name == user.name && rankings[r].score == user.score){
-            inserted = true;
-            $(".view table#leaderboard tbody").append("<tr class='user'><td>"+rankings[r].rank+"</td><td>"+rankings[r].name+"</td><td>"+formatScore(rankings[r].score)+"</td></tr>");
-        } 
-        else $(".view table#leaderboard tbody").append("<tr><td>"+rankings[r].rank+"</td><td>"+rankings[r].name+"</td><td>"+formatScore(rankings[r].score)+"</td></tr>");
+        var context = this;
+        $("#arrowLeft").on("click", function(){
+            context.roundHistory++;
+            if(context.roundHistory>=context.gameInfo.roundData.length) 
+                context.roundHistory = context.gameInfo.roundData.length;
+        });
+        $("#arrowRight").on("click", function(){
+            context.roundHistory--;
+            if(context.roundHistory<=0) 
+                context.roundHistory = 0;
+        });
     }
 
-    //User is either bottom of list or not top ten
-    if(!inserted){
-        var bRank = Math.min(10,list.length)+1;
-        var extra = bRank>10?40:0;
+    //Toggle arrows
+    $("#arrowLeft").toggle(!(this.roundHistory>=this.gameInfo.roundData.length));
+    $("#arrowRight").toggle(!(this.roundHistory<=0));
+    $(".view tbody").empty();
+    $(".view p#status").empty();
 
-        //dots
-        if(extra) $(".view table#leaderboard tbody").append("<tr><td></td><td>...</td><td></td></tr>");
-    
-        //User
-        $(".view table#leaderboard tbody").append("<tr class='user'><td>"+userRank+"</td><td>"+user.name+"</td><td>"+formatScore(user.score)+"</td></tr>");
+    if(this.roundHistory==0){
+        //Update Info
+        $(".view p#roundInfo #round").text("ROUND "+this.gameInfo.round);
+        $(".view p#roundInfo #date").text("This round ends in "+roundDateFormat(this.gameInfo.resetDate));
+
+        //Build table
+        var temp = rankPlayers(user, list);
+        var rankings = temp[0];
+        var userRank = temp[1];
+        var inserted = false;
+        for(var r = 0; r < Math.min(10,rankings.length); r++){
+            if(rankings[r].name == user.name && rankings[r].score == user.score){
+                inserted = true;
+                $(".view table#leaderboard tbody").append("<tr class='user'><td>"+rankings[r].rank+"</td><td>"+rankings[r].name+"</td><td>"+formatScore(rankings[r].score)+"</td></tr>");
+            } 
+            else $(".view table#leaderboard tbody").append("<tr><td>"+rankings[r].rank+"</td><td>"+rankings[r].name+"</td><td>"+formatScore(rankings[r].score)+"</td></tr>");
+        }
+
+        //User is either bottom of list or not top ten
+        if(!inserted){
+            var bRank = Math.min(10,list.length)+1;
+            var extra = bRank>10?40:0;
+
+            //dots
+            if(extra) $(".view table#leaderboard tbody").append("<tr><td></td><td>...</td><td></td></tr>");
+        
+            //User
+            $(".view table#leaderboard tbody").append("<tr class='user'><td>"+userRank+"</td><td>"+user.name+"</td><td>"+formatScore(user.score)+"</td></tr>");
+        }
+    }
+    else{
+        var roundData = this.gameInfo.roundData[this.gameInfo.roundData.length-this.roundHistory];
+
+
+        //Update info
+        $(".view p#roundInfo #round").text("ROUND "+roundData.round);
+        $(".view p#roundInfo #date").text("This round ended on "+(new Date(roundData.end).toLocaleDateString()));
+
+        //Build table
+        var r = 0, participated = false;
+        for(; r < Math.min(10,roundData.rankings.length); r++){
+            var name = getNameFromID(roundData.rankings[r].id, list);
+            if(roundData.rankings[r].id == user.id){
+                $(".view table#leaderboard tbody").append("<tr class='user'><td>"+roundData.rankings[r].rank+"</td><td>"+user.name+"</td><td>"+formatScore(roundData.rankings[r].score)+"</td></tr>");
+                participated = roundData.rankings[r];
+            } 
+            else $(".view table#leaderboard tbody").append("<tr><td>"+roundData.rankings[r].rank+"</td><td>"+name+"</td><td>"+formatScore(roundData.rankings[r].score)+"</td></tr>");
+        }
+
+        //User is either did not participate in the round or did not make top 10
+        if(!participated){
+            for(; r < roundData.rankings.length; r++){
+                if(roundData.rankings[r].id == user.id){
+                    participated = roundData.rankings[r];
+                    break;
+                }
+            }
+        }
+
+        if(!participated){
+            $(".view #status").html("You did not participate in or complete this round.");
+        }else{
+            $(".view #status").html("You ranked <b>"+participated.rank+rankWord(participated.rank)+"</b> out of "+roundData.rankings.length+" players with a score of <b>"+formatScore(participated.score)+"</b>");
+        }
     }
 }
 
@@ -581,6 +682,28 @@ function dateFormat(milliseconds){
     return date;
 }
 
+function roundDateFormat(targetDate){
+    var timeLeft = targetDate - new Date().getTime();
+
+    var days = Math.max(Math.floor(timeLeft / (1000 * 60 * 60 * 24)),0);
+    var hours = Math.max(Math.floor((timeLeft % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60)),0);
+    var minutes = Math.max(Math.floor((timeLeft % (1000 * 60 * 60)) / (1000 * 60)),0);
+    var seconds = Math.max(Math.floor((timeLeft % (1000 * 60)) / 1000),0);
+    var milliseconds = Math.max(Math.floor((timeLeft % 1000)/10),0);
+
+    // console.log(days, hours, minutes, seconds, milliseconds);
+
+    var ret = "";
+    if(days > 2) ret = days+"d "+hours+"h";
+    else if(days*24+hours > 1) ret = (days*24+hours>9?days*24+hours:"0"+(days*24+hours))+":"+(minutes>9?minutes:"0"+minutes);
+    else if(minutes > 0) ret = (minutes>9?minutes:"0"+minutes)+":"+(seconds>9?seconds:"0"+seconds);
+    else ret = "00:"+(seconds>9?seconds:"0"+seconds)+"."+(milliseconds>9?milliseconds:"0"+milliseconds);
+
+
+    return ret;
+    // return new Date(milliseconds).toLocaleString();
+}
+
 function rankPlayers(user,list){
     var ranking = [];
 
@@ -728,4 +851,18 @@ function hexToRgb(hex) {
         g: parseInt(result[2], 16),
         b: parseInt(result[3], 16)
     } : null;
+}
+
+function getNameFromID(id, list){
+    for(var l in list){
+        if(list[l].id == id) return list[l].name;
+    }
+    return "N/A";
+}
+
+function rankWord(rank){
+    if(rank%10==1 && rank!=11) return "st";
+    if(rank%10==2 && rank!=12) return "nd";
+    if(rank%10==3 && rank!=13) return "rd";
+    else return "th";
 }

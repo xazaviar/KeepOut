@@ -16,8 +16,11 @@ function Game(socket, drawing){
     this.lastInput = Date.now();
 
     this.gameRules = null;
+    this.gameInfo = null;
     this.gotLvlup = false;
+    this.gotRoundEnd = false;
     this.prevLevelup = false;
+    this.prevRoundEnd = false;
 
     var context = this;
     setInterval(function(){
@@ -56,6 +59,8 @@ Game.prototype.init = function(email, password) {
         context.user  = data['self'];
         context.otherPlayers = data['players'];
         context.gameRules = data['rules'];
+        context.gameInfo = data['gameInfo'];
+        context.drawing.gameInfo = context.gameInfo;
         context.reconnectAttempts = 10;
 
         //Load prev settings
@@ -164,6 +169,11 @@ Game.prototype.receiveGameState = function(state) {
             // console.log("SELF CHANGE");
             this.user = updates[u].player;
         }
+        else if(updates[u].type == "gameChange"){
+            // console.log("SELF CHANGE");
+            this.gameInfo = updates[u].gameInfo;
+            this.drawing.gameInfo = updates[u].gameInfo;
+        }
     }
 
     //Correct balls
@@ -211,6 +221,14 @@ Game.prototype.receiveGameState = function(state) {
     }else if(!this.user.showLvlUp && this.prevLevelup){
         this.prevLevelup = false;
     }
+
+    //Check for round end
+    if(this.user.showRoundEnd && !this.prevRoundEnd){
+        this.gotRoundEnd = true;
+        this.prevRoundEnd = true;
+    }else if(!this.user.showRoundEnd && this.prevRoundEnd){
+        this.prevRoundEnd = false;
+    }
 }
 
 Game.prototype.update = function() {
@@ -232,7 +250,8 @@ Game.prototype.update = function() {
                 nameChange: this.drawing.nameChange,
                 dynamicBackground: this.drawing.staticBGcolor == null,
                 quickStatsEnabled: this.drawing.quickStatsEnabled,
-                gotLvlup: this.gotLvlup 
+                gotLvlup: this.gotLvlup, 
+                gotRoundEnd: this.gotRoundEnd
             }
         });
         //Reset variables
@@ -259,7 +278,7 @@ Game.prototype.draw = function() {
         //Hide tutorial
         if(this.user.swatCount >= 3){
             $(".title p#tutorial").toggle(false);
-            $("p#title").toggle(true);
+            $(".title p#title").toggle(true);
         } 
         else{
             $(".title p#tutorial").toggle(true);
@@ -275,10 +294,16 @@ Game.prototype.draw = function() {
 
     //Draw level up
     // console.log("SHOW LEVEL UP: ",this.gotLvlup && Date.now()-this.lastLevelup<10)
-    if(this.gotLvlup && !this.drawing.showingLevelup){
+    if(this.gotLvlup && !this.drawing.showingLevelup && !this.drawing.showingRoundEnd){
         this.drawing.drawLevelUp();
         this.gotLvlup = false;
-    }else if(this.gotLvlup) this.gotLvlup = false;
+    }else if(this.gotLvlup || this.drawing.showingLevelup || this.drawing.ballList.length==0) this.gotLvlup = false;
+
+    //Draw round end
+    if(this.gotRoundEnd && !this.drawing.showingRoundEnd && !this.drawing.showingLevelup){
+        this.drawing.drawRoundEnd(this.user.showRoundEnd, (this.otherPlayers.length+1));
+        this.gotRoundEnd = false;
+    }else if(this.gotRoundEnd || this.drawing.showingRoundEnd) this.gotRoundEnd = false;
 
     //Draw Alternate Screens
     if(this.user)

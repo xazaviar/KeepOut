@@ -99,6 +99,40 @@ body {
 }*/
 
 /*******************LEADERBOARD********************/
+.view p#roundInfo {
+	cursor: default;
+	margin: auto;
+	color: white;
+	text-align: center;
+	font-size: 20pt;
+	width: 50%;
+	min-width: 350px;
+	margin-top: 10px;
+	margin-bottom: 20px;
+}
+
+.view p#roundInfo .arrow {
+	cursor: pointer;
+}
+
+.view p#roundInfo #round {
+	font-size: 25pt;
+	font-weight:bold;
+}
+
+.view p#roundInfo #date {
+	font-size: 16pt;
+}
+
+.view p#status {
+	width: 80%;
+	margin: auto;
+	margin-top: 25px;
+	margin-bottom: 25px;
+	font-size: 16pt;
+	text-align: center;
+}
+
 .view table#leaderboard {
 	cursor: default;
 	margin: auto;
@@ -444,7 +478,7 @@ div#settings button#nameChange {
 }
 
 /*************************************************
- * Level Up CSS
+ * Messaging CSS
  **************************************************/
 .levelUp {
 	position: absolute;
@@ -458,6 +492,41 @@ div#settings button#nameChange {
 	background-color: rgba(0,0,0,.6);
 	z-index: 200;
 }
+
+.roundEnd {
+	position: absolute;
+	overflow: hidden;
+	display: none;
+	opacity: 0.0;
+	top: 0;
+	left: 0;
+	width: 100%;
+	height: 100%;
+	background-color: rgba(0,0,0,.6);
+	z-index: 201;
+}
+
+.roundEnd p {
+	color: white;
+	font-family: arial;
+	width: 50%;
+	margin: auto;
+	min-width: 300px;
+	text-align: center;
+}
+
+.roundEnd p#message {
+	font-size: 20pt;
+	font-weight: bold;
+	margin-top: 40%;
+}
+
+.roundEnd p#info {
+	font-size: 15pt;
+	margin-top: 50px;
+}
+
+
 
 
 /*************************************************

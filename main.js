@@ -47,7 +47,7 @@ const logger = createLogger({
 var app = express();
 var server = http.Server(app);
 var io = socketIO(server);
-var game = Game.create(process.env.ISPROD==false, logger);
+var game = Game.create("public", logger);
 
 var newPlayerQueue = [];
 
@@ -234,7 +234,7 @@ setInterval(() => {
  * Game save loop. This runs once every 5 minutes
  */
 setInterval(() => {
-    game.saveData();
+    game.savePlayerData();
 }, 1000*60*10);
 
 /**
@@ -265,9 +265,11 @@ function exitHandler(options, exitCode){
     // if (exitCode || exitCode === 0) console.log(exitCode);
     if (options.exit){
         logger.info("SERVER PREPARING TO SHUT DOWN");
-        game.saveData(function(){
-            logger.info("SERVER SHUTTING DOWN");
-            process.exit();
+        game.saveGameData(function(){
+            game.savePlayerData(function(){
+                logger.info("SERVER SHUTTING DOWN");
+                process.exit();
+            },true);
         },true);
     } 
 }
