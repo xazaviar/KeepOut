@@ -28,3 +28,4 @@ node_modules/*
 certs/*
 logs/*
 game_data/player_data/*
+game_data/games/*
